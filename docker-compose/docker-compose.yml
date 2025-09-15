@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: iam-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: iam_platform
+      MYSQL_USER: iam
+      MYSQL_PASSWORD: iam123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - iam-network
+
+  # Redis缓存
+  redis:
+    image: redis:6.2-alpine
+    container_name: iam-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - iam-network
+
+  # Nacos注册中心
+  nacos:
+    image: nacos/nacos-server:v2.4.2
+    container_name: iam-nacos
+    restart: always
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: 123456
+      MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    volumes:
+      - nacos_data:/home/nacos/data
+      - nacos_logs:/home/nacos/logs
+    depends_on:
+      - mysql
+    networks:
+      - iam-network
+
+  # RocketMQ NameServer
+  rocketmq-nameserver:
+    image: apache/rocketmq:5.3.1
+    container_name: iam-rocketmq-nameserver
+    restart: always
+    ports:
+      - "9876:9876"
+    environment:
+      JAVA_OPT_EXT: "-Xms512M -Xmx512M -Xmn128m"
+    volumes:
+      - rocketmq_nameserver_data:/opt/logs
+    command: sh mqnamesrv
+    networks:
+      - iam-network
+
+  # RocketMQ Broker
+  rocketmq-broker:
+    image: apache/rocketmq:5.3.1
+    container_name: iam-rocketmq-broker
+    restart: always
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    environment:
+      NAMESRV_ADDR: rocketmq-nameserver:9876
+      JAVA_OPT_EXT: "-Xms512M -Xmx512M -Xmn128m"
+    volumes:
+      - rocketmq_broker_data:/opt/logs
+      - rocketmq_broker_store:/opt/store
+    command: sh mqbroker -c /opt/rocketmq-5.3.1/conf/broker.conf
+    depends_on:
+      - rocketmq-nameserver
+    networks:
+      - iam-network
+
+  # RocketMQ Console
+  rocketmq-console:
+    image: styletang/rocketmq-console-ng:latest
+    container_name: iam-rocketmq-console
+    restart: always
+    ports:
+      - "8180:8080"
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-nameserver:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    depends_on:
+      - rocketmq-nameserver
+    networks:
+      - iam-network
+
+  # Sentinel Dashboard
+  sentinel-dashboard:
+    image: bladex/sentinel-dashboard:1.8.8
+    container_name: iam-sentinel-dashboard
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_OPTS: "-Dserver.port=8080 -Dcsp.sentinel.dashboard.server=localhost:8080 -Dproject.name=sentinel-dashboard"
+    networks:
+      - iam-network
+
+  # Seata Server
+  seata-server:
+    image: seataio/seata-server:1.8.0
+    container_name: iam-seata-server
+    restart: always
+    ports:
+      - "8091:8091"
+    environment:
+      SEATA_PORT: 8091
+      STORE_MODE: db
+      SEATA_CONFIG_NAME: file:/root/seata-config/registry
+    volumes:
+      - seata_data:/root/seata-sessions
+    depends_on:
+      - mysql
+    networks:
+      - iam-network
+
+  # Elasticsearch
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    container_name: iam-elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - iam-network
+
+  # Kibana
+  kibana:
+    image: kibana:7.17.9
+    container_name: iam-kibana
+    restart: always
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - iam-network
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: iam-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - iam-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: iam-grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - iam-network
+
+volumes:
+  mysql_data:
+  redis_data:
+  nacos_data:
+  nacos_logs:
+  rocketmq_nameserver_data:
+  rocketmq_broker_data:
+  rocketmq_broker_store:
+  seata_data:
+  elasticsearch_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  iam-network:
+    driver: bridge

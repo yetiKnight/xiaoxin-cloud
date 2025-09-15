@@ -1,0 +1,69 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: iam-auth-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: public
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - data-id: iam-common.yml
+            group: DEFAULT_GROUP
+            refresh: true
+  security:
+    oauth2:
+      authorization-server:
+        issuer: http://localhost:8080
+        client-id: iam-client
+        client-secret: iam-secret
+        authorization-grant-types: authorization_code,refresh_token,client_credentials
+        scopes: read,write
+        redirect-uris: http://localhost:3000/callback
+        client-authentication-methods: client_secret_basic,client_secret_post
+        authorization-code-grant:
+          authorization-uri: /oauth2/authorize
+          token-uri: /oauth2/token
+        client-credentials-grant:
+          token-uri: /oauth2/token
+        refresh-token-grant:
+          token-uri: /oauth2/token
+
+# Sentinel配置
+spring.cloud.sentinel:
+  transport:
+    dashboard: localhost:8080
+    port: 8720
+  datasource:
+    ds1:
+      nacos:
+        server-addr: localhost:8848
+        dataId: iam-auth-service-flow-rules
+        groupId: SENTINEL_GROUP
+        rule-type: flow
+
+# 日志配置
+logging:
+  level:
+    com.xiaoxin.iam: debug
+    org.springframework.security: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

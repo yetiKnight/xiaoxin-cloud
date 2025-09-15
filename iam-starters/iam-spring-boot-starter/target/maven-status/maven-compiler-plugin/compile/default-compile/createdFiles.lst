@@ -1,0 +1,5 @@
+com\xiaoxin\iam\starter\config\IamProperties.class
+com\xiaoxin\iam\starter\web\GlobalExceptionHandler.class
+com\xiaoxin\iam\starter\web\IamResponseBodyAdvice.class
+com\xiaoxin\iam\starter\IamAutoConfiguration.class
+com\xiaoxin\iam\starter\autoconfigure\IamAutoConfiguration.class

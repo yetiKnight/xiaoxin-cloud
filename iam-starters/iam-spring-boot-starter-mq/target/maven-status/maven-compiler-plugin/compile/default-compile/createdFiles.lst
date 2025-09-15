@@ -1,0 +1,4 @@
+com\xiaoxin\iam\starter\mq\MqProperties.class
+com\xiaoxin\iam\starter\mq\MqProperties$Producer.class
+com\xiaoxin\iam\starter\mq\MqProperties$Consumer.class
+com\xiaoxin\iam\starter\mq\MqAutoConfiguration.class

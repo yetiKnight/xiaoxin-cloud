@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>iam-platform</artifactId>
+        <groupId>com.xiaoxin</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>iam-starters</artifactId>
+    <packaging>pom</packaging>
+    <name>IAM Starters</name>
+    <description>IAM平台Starter模块集合</description>
+    
+    <modules>
+        <module>iam-commons</module>
+        <module>iam-spring-boot-starter</module>
+        <module>iam-spring-boot-starter-web</module>
+        <module>iam-spring-boot-starter-security</module>
+        <module>iam-spring-boot-starter-data</module>
+        <module>iam-spring-boot-starter-cache</module>
+        <module>iam-spring-boot-starter-mq</module>
+        <module>iam-spring-boot-starter-audit</module>
+        <module>iam-spring-boot-starter-notification</module>
+        <module>iam-spring-boot-starter-gateway</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

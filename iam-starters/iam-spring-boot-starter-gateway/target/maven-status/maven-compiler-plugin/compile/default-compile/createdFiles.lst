@@ -1,0 +1,4 @@
+com\xiaoxin\iam\starter\gateway\GatewayAutoConfiguration.class
+com\xiaoxin\iam\starter\gateway\GatewayProperties$Route.class
+com\xiaoxin\iam\starter\gateway\GatewayProperties$RateLimit.class
+com\xiaoxin\iam\starter\gateway\GatewayProperties.class

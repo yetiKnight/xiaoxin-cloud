@@ -1,0 +1,7 @@
+com\xiaoxin\iam\common\constant\CommonConstants.class
+com\xiaoxin\iam\common\exception\BusinessException.class
+com\xiaoxin\iam\common\result\Result.class
+com\xiaoxin\iam\common\result\ResultCode.class
+com\xiaoxin\iam\common\exception\GlobalExceptionHandler.class
+com\xiaoxin\iam\common\result\IResult.class
+com\xiaoxin\iam\common\result\ResultEnum.class
