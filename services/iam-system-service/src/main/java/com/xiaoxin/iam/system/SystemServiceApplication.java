@@ -1,22 +1,20 @@
-package com.xiaoxin.iam.user;
+package com.xiaoxin.iam.system;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
- * 用户服务启动类
- *
+ * 系统服务启动类
+ * 
  * @author xiaoxin
- * @since 1.0.0
+ * @since 2024-01-01
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients
-public class UserServiceApplication {
+public class SystemServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(UserServiceApplication.class, args);
+        SpringApplication.run(SystemServiceApplication.class, args);
     }
 }

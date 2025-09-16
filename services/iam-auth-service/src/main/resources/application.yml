@@ -8,11 +8,11 @@ spring:
     nacos:
       discovery:
         server-addr: localhost:8848
-        namespace: public
+        namespace: iam-platform
         group: DEFAULT_GROUP
       config:
         server-addr: localhost:8848
-        namespace: public
+        namespace: iam-platform
         group: DEFAULT_GROUP
         file-extension: yml
         shared-configs:

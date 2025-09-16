@@ -60,13 +60,10 @@ echo "3. 启动微服务..."
 echo "按以下顺序启动服务："
 echo "   1. iam-gateway (网关服务)"
 echo "   2. iam-auth-service (认证服务)"
-echo "   3. iam-user-service (用户服务)"
-echo "   4. iam-permission-service (权限服务)"
-echo "   5. iam-organization-service (组织服务)"
-echo "   6. iam-audit-service (审计服务)"
-echo "   7. iam-notification-service (通知服务)"
-echo "   8. iam-config-service (配置服务)"
-echo "   9. iam-frontend (前端服务)"
+echo "   3. iam-core-service (核心业务服务)"
+echo "   4. iam-audit-service (审计服务)"
+echo "   5. iam-system-service (系统服务)"
+echo "   6. iam-frontend (前端服务)"
 echo ""
 
 # 启动网关
@@ -85,28 +82,12 @@ AUTH_PID=$!
 echo "认证服务已启动，PID: $AUTH_PID"
 sleep 5
 
-# 启动用户服务
-echo "启动用户服务..."
-cd ../iam-user-service
-nohup mvn spring-boot:run > logs/user.log 2>&1 &
-USER_PID=$!
-echo "用户服务已启动，PID: $USER_PID"
-sleep 5
-
-# 启动权限服务
-echo "启动权限服务..."
-cd ../iam-permission-service
-nohup mvn spring-boot:run > logs/permission.log 2>&1 &
-PERMISSION_PID=$!
-echo "权限服务已启动，PID: $PERMISSION_PID"
-sleep 5
-
-# 启动组织服务
-echo "启动组织服务..."
-cd ../iam-organization-service
-nohup mvn spring-boot:run > logs/organization.log 2>&1 &
-ORG_PID=$!
-echo "组织服务已启动，PID: $ORG_PID"
+# 启动核心业务服务
+echo "启动核心业务服务..."
+cd ../iam-core-service
+nohup mvn spring-boot:run > logs/core.log 2>&1 &
+CORE_PID=$!
+echo "核心业务服务已启动，PID: $CORE_PID"
 sleep 5
 
 # 启动审计服务
@@ -117,20 +98,12 @@ AUDIT_PID=$!
 echo "审计服务已启动，PID: $AUDIT_PID"
 sleep 5
 
-# 启动通知服务
-echo "启动通知服务..."
-cd ../iam-notification-service
-nohup mvn spring-boot:run > logs/notification.log 2>&1 &
-NOTIFICATION_PID=$!
-echo "通知服务已启动，PID: $NOTIFICATION_PID"
-sleep 5
-
-# 启动配置服务
-echo "启动配置服务..."
-cd ../iam-config-service
-nohup mvn spring-boot:run > logs/config.log 2>&1 &
-CONFIG_PID=$!
-echo "配置服务已启动，PID: $CONFIG_PID"
+# 启动系统服务
+echo "启动系统服务..."
+cd ../iam-system-service
+nohup mvn spring-boot:run > logs/system.log 2>&1 &
+SYSTEM_PID=$!
+echo "系统服务已启动，PID: $SYSTEM_PID"
 sleep 5
 
 # 启动前端服务
@@ -152,12 +125,9 @@ echo ""
 echo "服务PID信息："
 echo "  网关服务: $GATEWAY_PID"
 echo "  认证服务: $AUTH_PID"
-echo "  用户服务: $USER_PID"
-echo "  权限服务: $PERMISSION_PID"
-echo "  组织服务: $ORG_PID"
+echo "  核心业务服务: $CORE_PID"
 echo "  审计服务: $AUDIT_PID"
-echo "  通知服务: $NOTIFICATION_PID"
-echo "  配置服务: $CONFIG_PID"
+echo "  系统服务: $SYSTEM_PID"
 echo "  前端服务: $FRONTEND_PID"
 echo ""
 echo "日志文件位置："
@@ -166,5 +136,5 @@ echo "  网关日志: iam-gateway/logs/gateway.log"
 echo "  前端日志: apps/iam-frontend/logs/frontend.log"
 echo ""
 echo "停止服务命令："
-echo "  kill $GATEWAY_PID $AUTH_PID $USER_PID $PERMISSION_PID $ORG_PID $AUDIT_PID $NOTIFICATION_PID $CONFIG_PID $FRONTEND_PID"
+echo "  kill $GATEWAY_PID $AUTH_PID $CORE_PID $AUDIT_PID $SYSTEM_PID $FRONTEND_PID"
 echo "=========================================="

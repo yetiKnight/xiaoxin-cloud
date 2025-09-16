@@ -49,28 +49,32 @@
     ┌────────────────────────────┼────────────────────────────┐
     │                            │                            │
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   认证服务       │    │   用户服务       │    │   权限服务       │
-│ iam-auth-service│    │ iam-user-service│    │iam-permission-  │
-│   OAuth2.1      │    │   用户管理       │    │   service       │
-│   JWT Token     │    │   用户认证       │    │   角色权限       │
-│   单点登录       │    │   用户生命周期   │    │   权限验证       │
+│   认证服务       │    │   核心业务服务   │    │   审计服务       │
+│ iam-auth-service│    │ iam-core-service│    │ iam-audit-service│
+│   OAuth2.1      │    │   用户管理       │    │   操作日志       │
+│   JWT Token     │    │   权限管理       │    │   登录日志       │
+│   单点登录       │    │   组织管理       │    │   审计报表       │
+│   多因子认证     │    │   数据权限       │    │   合规检查       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   组织服务       │    │   审计服务       │    │   通知服务       │
-│iam-organization-│    │ iam-audit-service│    │iam-notification-│
-│   service       │    │   操作日志       │    │   service       │
-│   部门管理       │    │   登录日志       │    │   消息通知       │
-│   岗位管理       │    │   审计报表       │    │   邮件短信       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   配置服务       │    │   前端服务       │    │   公共模块       │
-│ iam-config-     │    │ iam-frontend    │    │ iam-common      │
-│   service       │    │   管理后台       │    │   公共组件       │
-│   系统配置       │    │   Vue 3.0       │    │   工具类         │
-│   字典管理       │    │   Element Plus  │    │   异常处理       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │   系统服务       │
+                    │ iam-system-     │
+                    │   service       │
+                    │   系统配置       │
+                    │   消息通知       │
+                    │   系统监控       │
+                    └─────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │   前端服务       │
+                    │ iam-frontend    │
+                    │   管理后台       │
+                    │   Vue 3.0       │
+                    │   Element Plus  │
+                    └─────────────────┘
          │                       │                       │
          └───────────────────────┼───────────────────────┘
                                  │
@@ -104,12 +108,9 @@ iam-platform/
 ├── iam-gateway/                   # 基础设施服务 - API网关 (8080)
 ├── services/                      # 微服务模块
 │   ├── iam-auth-service/                  # 认证服务 (8081)
-│   ├── iam-user-service/                  # 用户服务 (8082)
-│   ├── iam-permission-service/            # 权限服务 (8083)
-│   ├── iam-organization-service/          # 组织服务 (8084)
-│   ├── iam-audit-service/                 # 审计服务 (8085)
-│   ├── iam-notification-service/          # 通知服务 (8086)
-│   └── iam-config-service/                # 配置服务 (8087)
+│   ├── iam-core-service/                  # 核心业务服务 (8082)
+│   ├── iam-audit-service/                 # 审计服务 (8083)
+│   └── iam-system-service/                # 系统服务 (8084)
 ├── apps/                          # 应用层服务
 │   └── iam-frontend/                      # 前端服务 (8088)
 ├── config-init/                   # 配置初始化
@@ -136,13 +137,10 @@ iam-platform/
 | 服务名称 | 端口 | 职责 | 数据库 | 分层 |
 |---------|------|------|--------|------|
 | iam-gateway | 8080 | API网关，统一入口，路由转发 | - | 基础设施层 |
-| iam-auth-service | 8081 | 认证服务，OAuth2.1认证 | - | 微服务层 |
-| iam-user-service | 8082 | 用户服务，用户信息管理 | iam_user | 微服务层 |
-| iam-permission-service | 8083 | 权限服务，角色权限管理 | iam_permission | 微服务层 |
-| iam-organization-service | 8084 | 组织服务，部门岗位管理 | iam_organization | 微服务层 |
-| iam-audit-service | 8085 | 审计服务，操作日志 | iam_audit | 微服务层 |
-| iam-notification-service | 8086 | 通知服务，消息通知 | - | 微服务层 |
-| iam-config-service | 8087 | 配置服务，系统配置 | iam_config | 微服务层 |
+| iam-auth-service | 8081 | 认证服务，OAuth2.1认证 | iam_auth | 微服务层 |
+| iam-core-service | 8082 | 核心业务服务，用户/权限/组织管理 | iam_core | 微服务层 |
+| iam-audit-service | 8083 | 审计服务，操作日志 | iam_audit | 微服务层 |
+| iam-system-service | 8084 | 系统服务，配置/通知/监控 | iam_system | 微服务层 |
 | iam-frontend | 8088 | 前端服务，管理后台 | - | 应用层 |
 
 ### 数据存储架构

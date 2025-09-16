@@ -61,13 +61,13 @@ iam-platform/
 │   │   ├── mapper/                # 数据访问层
 │   │   └── config/                # 配置类
 │   └── pom.xml
-├── iam-user-service/              # 用户服务
-├── iam-permission-service/        # 权限服务
-├── iam-organization-service/      # 组织服务
-├── iam-audit-service/             # 审计服务
-├── iam-notification-service/      # 通知服务
-├── iam-config-service/            # 配置服务
-├── iam-frontend/                  # 前端服务
+├── services/                      # 微服务模块
+│   ├── iam-auth-service/                  # 认证服务 (8081)
+│   ├── iam-core-service/                  # 核心业务服务 (8082)
+│   ├── iam-audit-service/                 # 审计服务 (8083)
+│   └── iam-system-service/                # 系统服务 (8084)
+├── apps/                          # 应用层服务
+│   └── iam-frontend/                      # 前端服务 (8088)
 ├── config-init/                   # 配置初始化
 │   ├── config/                    # Nacos配置
 │   ├── sql/                       # 数据库脚本
@@ -80,22 +80,18 @@ iam-platform/
 ## 微服务架构
 
 ### 服务拆分
-- **iam-gateway**: API网关，统一入口，路由转发，限流熔断
-- **iam-auth-service**: 认证服务，OAuth2.1认证，JWT Token管理
-- **iam-user-service**: 用户服务，用户信息管理，用户生命周期
-- **iam-permission-service**: 权限服务，角色权限管理，权限验证
-- **iam-organization-service**: 组织服务，部门岗位管理，组织架构
-- **iam-audit-service**: 审计服务，操作日志，合规审计
-- **iam-notification-service**: 通知服务，消息通知，邮件短信
-- **iam-config-service**: 配置服务，系统配置，字典管理
-- **iam-frontend**: 前端服务，管理后台界面
+- **iam-gateway**: API网关，统一入口，路由转发，限流熔断 (8080)
+- **iam-auth-service**: 认证服务，OAuth2.1认证，JWT Token管理 (8081)
+- **iam-core-service**: 核心业务服务，用户/权限/组织管理 (8082)
+- **iam-audit-service**: 审计服务，操作日志，合规审计 (8083)
+- **iam-system-service**: 系统服务，配置/通知/监控 (8084)
+- **iam-frontend**: 前端服务，管理后台界面 (8088)
 
 ### 数据存储
-- **iam_user**: 用户相关数据
-- **iam_permission**: 权限相关数据
-- **iam_organization**: 组织架构数据
-- **iam_audit**: 审计日志数据
-- **iam_config**: 系统配置数据
+- **iam_auth**: 认证相关数据（OAuth2客户端、授权信息）
+- **iam_core**: 核心业务数据（用户、权限、组织）
+- **iam_audit**: 审计日志数据（操作日志、登录日志）
+- **iam_system**: 系统配置数据（配置、字典、通知）
 
 ## 快速开始
 
@@ -142,8 +138,11 @@ chmod +x config-init/scripts/*.sh
 
 # 或手动启动各个服务
 mvn spring-boot:run -pl iam-gateway
-mvn spring-boot:run -pl iam-auth-service
-# ... 其他服务
+mvn spring-boot:run -pl services/iam-auth-service
+mvn spring-boot:run -pl services/iam-core-service
+mvn spring-boot:run -pl services/iam-audit-service
+mvn spring-boot:run -pl services/iam-system-service
+mvn spring-boot:run -pl apps/iam-frontend
 ```
 
 ### 7. 访问系统

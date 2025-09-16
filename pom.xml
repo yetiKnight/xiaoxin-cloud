@@ -66,12 +66,9 @@
         
         <!-- 微服务模块 -->
         <module>services/iam-auth-service</module>
-        <module>services/iam-user-service</module>
-        <module>services/iam-permission-service</module>
-        <module>services/iam-organization-service</module>
+        <module>services/iam-core-service</module>
         <module>services/iam-audit-service</module>
-        <module>services/iam-notification-service</module>
-        <module>services/iam-config-service</module>
+        <module>services/iam-system-service</module>
         
         <!-- 应用层服务 -->
         <module>apps/iam-frontend</module>
