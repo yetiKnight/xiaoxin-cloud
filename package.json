@@ -1,0 +1,17 @@
+{
+  "name": "xiaoxin-cloud",
+  "version": "1.0.0",
+  "description": "小新云IAM平台",
+  "scripts": {
+    "commit": "./scripts/commit.sh",
+    "commitlint": "commitlint --edit",
+    "commitlint:last": "commitlint --from HEAD~1 --to HEAD --verbose"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-conventional": "^17.0.0"
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
+  }
+}

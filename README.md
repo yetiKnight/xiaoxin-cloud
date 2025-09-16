@@ -93,6 +93,46 @@ iam-platform/
 - **iam_audit**: 审计日志数据（操作日志、登录日志）
 - **iam_system**: 系统配置数据（配置、字典、通知）
 
+## 开发规范
+
+### Git Commit 规范
+
+本项目采用 [Conventional Commits](https://www.conventionalcommits.org/) 规范来标准化提交信息。
+
+#### 提交格式
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+#### 常用类型
+- `feat`: 新功能
+- `fix`: 修复bug
+- `docs`: 文档更新
+- `style`: 代码格式调整
+- `refactor`: 重构代码
+- `perf`: 性能优化
+- `test`: 测试相关
+- `chore`: 构建过程或辅助工具的变动
+
+#### 使用方式
+1. **使用模板**: `git commit` 会自动加载commit模板
+2. **使用脚本**: `./scripts/commit.sh` 交互式生成commit信息
+3. **查看规范**: 详细规范请参考 [docs/COMMIT_CONVENTION.md](docs/COMMIT_CONVENTION.md)
+
+#### 示例
+```bash
+feat(auth): add OAuth2 login support
+
+Implement OAuth2 authentication flow with Google and GitHub providers.
+This allows users to login using their social media accounts.
+
+Closes #45
+```
+
 ## 快速开始
 
 ### 环境要求
