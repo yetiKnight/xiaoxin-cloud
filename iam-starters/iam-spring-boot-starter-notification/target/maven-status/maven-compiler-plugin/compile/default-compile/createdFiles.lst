@@ -1,5 +1,0 @@
-com\xiaoxin\iam\starter\notification\NotificationAutoConfiguration.class
-com\xiaoxin\iam\starter\notification\NotificationProperties$Sms.class
-com\xiaoxin\iam\starter\notification\NotificationProperties$Wechat.class
-com\xiaoxin\iam\starter\notification\NotificationProperties$Mail.class
-com\xiaoxin\iam\starter\notification\NotificationProperties.class
