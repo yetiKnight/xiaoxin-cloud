@@ -16,16 +16,16 @@
 
 | 类型 | 说明 | 示例 |
 |------|------|------|
-| `feat` | 新功能 | `feat(auth): add OAuth2 login support` |
-| `fix` | 修复bug | `fix(core): resolve user creation validation issue` |
-| `docs` | 文档更新 | `docs: update API documentation` |
-| `style` | 代码格式调整（不影响功能） | `style: format code according to style guide` |
-| `refactor` | 重构代码 | `refactor(core): simplify user service logic` |
-| `perf` | 性能优化 | `perf(auth): optimize token validation performance` |
-| `test` | 测试相关 | `test(core): add unit tests for user service` |
-| `chore` | 构建过程或辅助工具的变动 | `chore: update dependencies` |
-| `ci` | 持续集成相关 | `ci: add GitHub Actions workflow` |
-| `build` | 构建系统或外部依赖的变动 | `build: update Maven configuration` |
+| `feat` | 新功能 | `feat(auth): 添加OAuth2登录支持` |
+| `fix` | 修复bug | `fix(core): 解决用户创建验证问题` |
+| `docs` | 文档更新 | `docs: 更新API文档` |
+| `style` | 代码格式调整（不影响功能） | `style: 按照代码规范格式化代码` |
+| `refactor` | 重构代码 | `refactor(core): 简化用户服务逻辑` |
+| `perf` | 性能优化 | `perf(auth): 优化令牌验证性能` |
+| `test` | 测试相关 | `test(core): 为用户服务添加单元测试` |
+| `chore` | 构建过程或辅助工具的变动 | `chore: 更新依赖包` |
+| `ci` | 持续集成相关 | `ci: 添加GitHub Actions工作流` |
+| `build` | 构建系统或外部依赖的变动 | `build: 更新Maven配置` |
 
 ## Scope 范围
 
