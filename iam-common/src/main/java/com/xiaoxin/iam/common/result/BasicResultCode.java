@@ -108,7 +108,7 @@ public enum BasicResultCode implements IResult {
     private final Integer code;
     private final String message;
 
-    ResultEnum(Integer code, String message) {
+    BasicResultCode(Integer code, String message) {
         this.code = code;
         this.message = message;
     }

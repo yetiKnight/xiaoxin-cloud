@@ -104,7 +104,6 @@ public enum ResultCode implements IResult {
     /**
      * 系统配置相关错误
      */
-    CONFIG_NOT_FOUND(6001, "配置不存在"),
     DICT_NOT_FOUND(6002, "字典不存在"),
 
     /**
@@ -126,7 +125,87 @@ public enum ResultCode implements IResult {
      */
     THIRD_PARTY_SERVICE_ERROR(9001, "第三方服务异常"),
     SMS_SEND_FAILED(9002, "短信发送失败"),
-    EMAIL_SEND_FAILED(9003, "邮件发送失败");
+    EMAIL_SEND_FAILED(9003, "邮件发送失败"),
+    WECHAT_LOGIN_FAILED(9004, "微信登录失败"),
+    DINGTALK_LOGIN_FAILED(9005, "钉钉登录失败"),
+    GITHUB_LOGIN_FAILED(9006, "GitHub登录失败"),
+
+    /**
+     * 缓存相关错误
+     */
+    CACHE_ERROR(10001, "缓存操作失败"),
+    CACHE_KEY_NOT_FOUND(10002, "缓存键不存在"),
+    CACHE_EXPIRED(10003, "缓存已过期"),
+
+    /**
+     * 消息队列相关错误
+     */
+    MQ_ERROR(11001, "消息队列异常"),
+    MQ_SEND_FAILED(11002, "消息发送失败"),
+    MQ_CONSUME_FAILED(11003, "消息消费失败"),
+
+    /**
+     * 分布式锁相关错误
+     */
+    LOCK_ERROR(12001, "分布式锁异常"),
+    LOCK_ACQUIRE_FAILED(12002, "获取锁失败"),
+    LOCK_RELEASE_FAILED(12003, "释放锁失败"),
+
+    /**
+     * 限流相关错误
+     */
+    RATE_LIMIT_EXCEEDED(13001, "请求频率超限"),
+    CIRCUIT_BREAKER_OPEN(13002, "熔断器已开启"),
+
+    /**
+     * 配置相关错误
+     */
+    CONFIG_ERROR(14001, "配置错误"),
+    CONFIG_NOT_FOUND(14002, "配置不存在"),
+    CONFIG_INVALID(14003, "配置无效"),
+
+    /**
+     * 网络相关错误
+     */
+    NETWORK_ERROR(15001, "网络异常"),
+    CONNECTION_TIMEOUT(15002, "连接超时"),
+    READ_TIMEOUT(15003, "读取超时"),
+
+    /**
+     * 序列化相关错误
+     */
+    SERIALIZATION_ERROR(16001, "序列化失败"),
+    DESERIALIZATION_ERROR(16002, "反序列化失败"),
+
+    /**
+     * 加密相关错误
+     */
+    ENCRYPTION_ERROR(17001, "加密失败"),
+    DECRYPTION_ERROR(17002, "解密失败"),
+    SIGNATURE_ERROR(17003, "签名验证失败"),
+
+    /**
+     * 文件相关错误
+     */
+    FILE_ERROR(18001, "文件操作失败"),
+    FILE_UPLOAD_ERROR(18002, "文件上传失败"),
+    FILE_DOWNLOAD_ERROR(18003, "文件下载失败"),
+    FILE_DELETE_ERROR(18004, "文件删除失败"),
+
+    /**
+     * 工作流相关错误
+     */
+    WORKFLOW_ERROR(19001, "工作流异常"),
+    WORKFLOW_NOT_FOUND(19002, "工作流不存在"),
+    WORKFLOW_INSTANCE_NOT_FOUND(19003, "工作流实例不存在"),
+    WORKFLOW_TASK_NOT_FOUND(19004, "工作流任务不存在"),
+
+    /**
+     * 审计相关错误
+     */
+    AUDIT_ERROR(20001, "审计异常"),
+    AUDIT_LOG_ERROR(20002, "审计日志记录失败"),
+    AUDIT_REPORT_ERROR(20003, "审计报表生成失败");
 
     /**
      * 响应码

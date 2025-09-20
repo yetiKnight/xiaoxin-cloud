@@ -64,35 +64,35 @@ public class Result<T> implements Serializable {
      * 成功响应
      */
     public static <T> Result<T> success() {
-        return new Result<>(ResultEnum.SUCCESS.getCode(), ResultEnum.SUCCESS.getMessage(), null);
+        return new Result<>(BasicResultCode.SUCCESS.getCode(), BasicResultCode.SUCCESS.getMessage(), null);
     }
 
     /**
      * 成功响应（带数据）
      */
     public static <T> Result<T> success(T data) {
-        return new Result<>(ResultEnum.SUCCESS.getCode(), ResultEnum.SUCCESS.getMessage(), data);
+        return new Result<>(BasicResultCode.SUCCESS.getCode(), BasicResultCode.SUCCESS.getMessage(), data);
     }
 
     /**
      * 成功响应（带消息和数据）
      */
     public static <T> Result<T> success(String message, T data) {
-        return new Result<>(ResultEnum.SUCCESS.getCode(), message, data);
+        return new Result<>(BasicResultCode.SUCCESS.getCode(), message, data);
     }
 
     /**
      * 失败响应
      */
     public static <T> Result<T> failed() {
-        return new Result<>(ResultEnum.FAILED.getCode(), ResultEnum.FAILED.getMessage(), null);
+        return new Result<>(BasicResultCode.FAILED.getCode(), BasicResultCode.FAILED.getMessage(), null);
     }
 
     /**
      * 失败响应（带消息）
      */
     public static <T> Result<T> failed(String message) {
-        return new Result<>(ResultEnum.FAILED.getCode(), message, null);
+        return new Result<>(BasicResultCode.FAILED.getCode(), message, null);
     }
 
     /**
@@ -110,10 +110,52 @@ public class Result<T> implements Serializable {
     }
 
     /**
+     * 失败响应（带结果枚举和数据）
+     */
+    public static <T> Result<T> failed(IResult result, T data) {
+        return new Result<>(result.getCode(), result.getMessage(), data);
+    }
+
+    /**
+     * 失败响应（带错误码、消息和数据）
+     */
+    public static <T> Result<T> failed(Integer code, String message, T data) {
+        return new Result<>(code, message, data);
+    }
+
+    /**
+     * 根据条件返回成功或失败结果
+     */
+    public static <T> Result<T> of(boolean success, String message) {
+        return success ? success(message, null) : failed(message);
+    }
+
+    /**
+     * 根据条件返回成功或失败结果（带数据）
+     */
+    public static <T> Result<T> of(boolean success, String message, T data) {
+        return success ? success(message, data) : failed(message);
+    }
+
+    /**
+     * 根据条件返回成功或失败结果（带错误码）
+     */
+    public static <T> Result<T> of(boolean success, Integer code, String message) {
+        return success ? success(message, null) : failed(code, message);
+    }
+
+    /**
+     * 根据条件返回成功或失败结果（带错误码和数据）
+     */
+    public static <T> Result<T> of(boolean success, Integer code, String message, T data) {
+        return success ? success(message, data) : failed(code, message, data);
+    }
+
+    /**
      * 判断是否成功
      */
     public boolean isSuccess() {
-        return ResultEnum.SUCCESS.getCode().equals(this.code);
+        return BasicResultCode.SUCCESS.getCode().equals(this.code);
     }
 
     /**
@@ -121,6 +163,69 @@ public class Result<T> implements Serializable {
      */
     public boolean isFailed() {
         return !isSuccess();
+    }
+
+    /**
+     * 判断是否有数据
+     */
+    public boolean hasData() {
+        return data != null;
+    }
+
+    /**
+     * 获取数据，如果为空则返回默认值
+     */
+    public T getDataOrDefault(T defaultValue) {
+        return data != null ? data : defaultValue;
+    }
+
+    /**
+     * 如果成功则执行操作
+     */
+    public Result<T> ifSuccess(java.util.function.Consumer<T> action) {
+        if (isSuccess() && data != null) {
+            action.accept(data);
+        }
+        return this;
+    }
+
+    /**
+     * 如果失败则执行操作
+     */
+    public Result<T> ifFailed(java.util.function.Consumer<Result<T>> action) {
+        if (isFailed()) {
+            action.accept(this);
+        }
+        return this;
+    }
+
+    /**
+     * 转换数据
+     */
+    public <R> Result<R> map(java.util.function.Function<T, R> mapper) {
+        if (isSuccess() && data != null) {
+            try {
+                R newData = mapper.apply(data);
+                return success(message, newData);
+            } catch (Exception e) {
+                return failed(ResultCode.INTERNAL_SERVER_ERROR.getCode(), "数据转换失败: " + e.getMessage());
+            }
+        }
+        return failed(code, message);
+    }
+
+    /**
+     * 扁平化转换
+     */
+    public <R> Result<R> flatMap(java.util.function.Function<T, Result<R>> mapper) {
+        if (isSuccess() && data != null) {
+            try {
+                return mapper.apply(data);
+            } catch (Exception e) {
+                return failed(ResultCode.INTERNAL_SERVER_ERROR.getCode(), "数据转换失败: " + e.getMessage());
+            }
+        }
+        return failed(code, message);
     }
 
     // Getter and Setter methods

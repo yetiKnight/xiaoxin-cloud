@@ -16,9 +16,8 @@
 
 package com.xiaoxin.iam.starter.web;
 
-import com.xiaoxin.iam.common.exception.BusinessException;
-import com.xiaoxin.iam.common.result.Result;
-import com.xiaoxin.iam.common.result.ResultEnum;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -29,9 +28,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.xiaoxin.iam.common.exception.BusinessException;
+import com.xiaoxin.iam.common.result.BasicResultCode;
+import com.xiaoxin.iam.common.result.Result;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import java.util.Set;
 
 /**
  * 全局异常处理器
@@ -63,7 +65,7 @@ public class GlobalExceptionHandler {
         log.warn("参数校验异常: {}", e.getMessage());
         FieldError fieldError = e.getBindingResult().getFieldError();
         String message = fieldError != null ? fieldError.getDefaultMessage() : "参数校验失败";
-        return Result.failed(ResultEnum.PARAM_ERROR.getCode(), message);
+        return Result.failed(BasicResultCode.PARAM_ERROR.getCode(), message);
     }
 
     /**
@@ -75,7 +77,7 @@ public class GlobalExceptionHandler {
         log.warn("参数绑定异常: {}", e.getMessage());
         FieldError fieldError = e.getBindingResult().getFieldError();
         String message = fieldError != null ? fieldError.getDefaultMessage() : "参数绑定失败";
-        return Result.failed(ResultEnum.PARAM_ERROR.getCode(), message);
+        return Result.failed(BasicResultCode.PARAM_ERROR.getCode(), message);
     }
 
     /**
@@ -87,7 +89,7 @@ public class GlobalExceptionHandler {
         log.warn("约束违反异常: {}", e.getMessage());
         Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
         String message = violations.isEmpty() ? "约束违反" : violations.iterator().next().getMessage();
-        return Result.failed(ResultEnum.PARAM_ERROR.getCode(), message);
+        return Result.failed(BasicResultCode.PARAM_ERROR.getCode(), message);
     }
 
     /**
@@ -97,7 +99,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("非法参数异常: {}", e.getMessage());
-        return Result.failed(ResultEnum.PARAM_ERROR.getCode(), e.getMessage());
+        return Result.failed(BasicResultCode.PARAM_ERROR.getCode(), e.getMessage());
     }
 
     /**
@@ -107,7 +109,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Void> handleRuntimeException(RuntimeException e) {
         log.error("运行时异常: ", e);
-        return Result.failed(ResultEnum.INTERNAL_SERVER_ERROR.getCode(), "系统内部错误");
+        return Result.failed(BasicResultCode.INTERNAL_SERVER_ERROR.getCode(), "系统内部错误");
     }
 
     /**
@@ -117,7 +119,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Void> handleException(Exception e) {
         log.error("系统异常: ", e);
-        return Result.failed(ResultEnum.INTERNAL_SERVER_ERROR.getCode(), "系统异常");
+        return Result.failed(BasicResultCode.INTERNAL_SERVER_ERROR.getCode(), "系统异常");
     }
 
 }
