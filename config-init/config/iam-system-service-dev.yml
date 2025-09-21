@@ -1,0 +1,86 @@
+# IAM系统服务开发环境配置
+
+# 数据库配置
+db:
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+  username: iam_system
+  password: M^3eA7_rX+fB
+
+# Redis配置
+redis:
+  host: localhost
+  port: 6379
+  password: eW7$zR2p#9qL!5v@1sKx8nP6dYf*4gHj
+  database:
+    system: 4
+
+# 字典配置
+dict:
+  cache-enabled: true
+  cache-expire-seconds: 3600
+  refresh-interval-seconds: 1800
+
+# 参数配置
+config:
+  cache-enabled: true
+  cache-expire-seconds: 7200
+  refresh-interval-seconds: 3600
+  encrypt-keys:
+    - password
+    - secret
+    - key
+
+# 通知配置
+notification:
+  # 站内信配置
+  message:
+    enabled: true
+    max-unread: 100
+    auto-read-days: 30
+  
+  # 邮件通知配置
+  email:
+    enabled: true
+    host: smtp.163.com
+    port: 465
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    from: ${MAIL_FROM:noreply@xiaoxin.com}
+    ssl: true
+    async: true
+    retry-times: 3
+  
+  # 短信通知配置
+  sms:
+    enabled: true
+    provider: aliyun
+    aliyun:
+      access-key: ${SMS_ACCESS_KEY:}
+      access-secret: ${SMS_ACCESS_SECRET:}
+      sign-name: 小信云
+    async: true
+    retry-times: 3
+  
+  # 微信通知配置
+  wechat:
+    enabled: false
+    corp-id: ${WECHAT_CORP_ID:}
+    agent-id: ${WECHAT_AGENT_ID:}
+    secret: ${WECHAT_SECRET:}
+
+# 任务调度配置
+scheduler:
+  enabled: true
+  thread-pool-size: 10
+  await-termination-seconds: 30
+  
+# 系统监控配置
+monitor:
+  enabled: true
+  metrics:
+    enabled: true
+    export-interval-seconds: 60
+  health-check:
+    enabled: true
+    check-interval-seconds: 30

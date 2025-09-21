@@ -130,16 +130,16 @@ CREATE TABLE IF NOT EXISTS `sys_user_post` (
 
 -- 插入初始数据
 -- 插入默认管理员用户
-INSERT INTO `sys_user` (`id`, `username`, `nickname`, `email`, `phone`, `sex`, `avatar`, `password`, `status`, `del_flag`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_user` (`id`, `username`, `nickname`, `email`, `phone`, `sex`, `avatar`, `password`, `status`, `del_flag`, `create_by`, `remark`) VALUES
 (1, 'admin', '管理员', 'admin@xiaoxin.com', '15888888888', '0', '', '$2a$10$7JB720yubVSOfvVWbQJ5UeJQJ5UeJQJ5UeJQJ5UeJQJ5UeJQJ5UeJQ', '0', '0', 'admin', '管理员');
 
 -- 插入默认角色
-INSERT INTO `sys_role` (`id`, `role_name`, `role_key`, `role_sort`, `data_scope`, `status`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_role` (`id`, `role_name`, `role_key`, `role_sort`, `data_scope`, `status`, `create_by`, `remark`) VALUES
 (1, '超级管理员', 'admin', 1, '1', '0', 'admin', '超级管理员'),
 (2, '普通角色', 'common', 2, '2', '0', 'admin', '普通角色');
 
 -- 插入默认菜单
-INSERT INTO `sys_menu` (`id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_menu` (`id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `remark`) VALUES
 (1, '系统管理', 0, 1, 'system', NULL, 'M', '0', '0', '', 'system', 'admin', '系统管理目录'),
 (2, '用户管理', 1, 1, 'user', 'system/user/index', 'C', '0', '0', 'system:user:list', 'user', 'admin', '用户管理菜单'),
 (3, '角色管理', 1, 2, 'role', 'system/role/index', 'C', '0', '0', 'system:role:list', 'peoples', 'admin', '角色管理菜单'),
@@ -154,11 +154,11 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `parent_id`, `order_num`, `path`, `co
 (12, '登录日志', 10, 2, 'logininfor', 'monitor/logininfor/index', 'C', '0', '0', 'monitor:logininfor:list', 'logininfor', 'admin', '登录日志菜单');
 
 -- 插入角色菜单关联
-INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
+INSERT IGNORE INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
 (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12);
 
 -- 插入默认部门
-INSERT INTO `sys_dept` (`id`, `parent_id`, `ancestors`, `dept_name`, `order_num`, `leader`, `phone`, `email`, `status`, `create_by`) VALUES
+INSERT IGNORE INTO `sys_dept` (`id`, `parent_id`, `ancestors`, `dept_name`, `order_num`, `leader`, `phone`, `email`, `status`, `create_by`) VALUES
 (100, 0, '0', '小新科技', 0, '小新', '15888888888', 'admin@xiaoxin.com', '0', 'admin'),
 (101, 100, '0,100', '深圳总公司', 1, '小新', '15888888888', 'sz@xiaoxin.com', '0', 'admin'),
 (102, 100, '0,100', '长沙分公司', 2, '小新', '15888888888', 'cs@xiaoxin.com', '0', 'admin'),
@@ -171,8 +171,120 @@ INSERT INTO `sys_dept` (`id`, `parent_id`, `ancestors`, `dept_name`, `order_num`
 (109, 102, '0,100,102', '财务部门', 2, '小新', '15888888888', 'fi@xiaoxin.com', '0', 'admin');
 
 -- 插入默认岗位
-INSERT INTO `sys_post` (`id`, `post_code`, `post_name`, `post_sort`, `status`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_post` (`id`, `post_code`, `post_name`, `post_sort`, `status`, `create_by`, `remark`) VALUES
 (1, 'ceo', '董事长', 1, '0', 'admin', ''),
 (2, 'se', '项目经理', 2, '0', 'admin', ''),
 (3, 'hr', '人力资源', 3, '0', 'admin', ''),
 (4, 'user', '普通员工', 4, '0', 'admin', '');
+
+-- ===========================================
+-- 权限管理增强表结构
+-- ===========================================
+
+-- 权限表（独立的权限管理，区别于菜单权限）
+CREATE TABLE IF NOT EXISTS `sys_permission` (
+    `id` bigint NOT NULL COMMENT '权限ID',
+    `permission_name` varchar(50) NOT NULL COMMENT '权限名称',
+    `permission_code` varchar(100) NOT NULL COMMENT '权限编码',
+    `permission_type` char(1) DEFAULT '1' COMMENT '权限类型（1功能权限 2数据权限 3字段权限）',
+    `resource_type` varchar(20) DEFAULT 'API' COMMENT '资源类型（API接口 MENU菜单 BUTTON按钮 DATA数据）',
+    `resource_path` varchar(200) DEFAULT '' COMMENT '资源路径',
+    `http_method` varchar(10) DEFAULT '' COMMENT 'HTTP方法（GET POST PUT DELETE）',
+    `parent_id` bigint DEFAULT 0 COMMENT '父权限ID',
+    `level` int DEFAULT 1 COMMENT '权限层级',
+    `sort_order` int DEFAULT 0 COMMENT '排序',
+    `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
+    `del_flag` char(1) DEFAULT '0' COMMENT '删除标志（0代表存在 2代表删除）',
+    `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_permission_code` (`permission_code`),
+    KEY `idx_parent_id` (`parent_id`),
+    KEY `idx_resource_type` (`resource_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='权限表';
+
+-- 角色权限关联表
+CREATE TABLE IF NOT EXISTS `sys_role_permission` (
+    `role_id` bigint NOT NULL COMMENT '角色ID',
+    `permission_id` bigint NOT NULL COMMENT '权限ID',
+    PRIMARY KEY (`role_id`, `permission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色和权限关联表';
+
+-- 用户部门关联表（支持用户多部门）
+CREATE TABLE IF NOT EXISTS `sys_user_dept` (
+    `user_id` bigint NOT NULL COMMENT '用户ID',
+    `dept_id` bigint NOT NULL COMMENT '部门ID',
+    `is_primary` char(1) DEFAULT '0' COMMENT '是否主部门（0否 1是）',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`user_id`, `dept_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户和部门关联表';
+
+-- 数据权限表（支持细粒度数据权限控制）
+CREATE TABLE IF NOT EXISTS `sys_data_permission` (
+    `id` bigint NOT NULL COMMENT '数据权限ID',
+    `role_id` bigint NOT NULL COMMENT '角色ID',
+    `resource_type` varchar(50) NOT NULL COMMENT '资源类型（表名或业务模块）',
+    `permission_type` char(1) DEFAULT '1' COMMENT '权限类型（1全部数据 2本部门数据 3本部门及子部门 4仅本人数据 5自定义数据）',
+    `dept_ids` varchar(1000) DEFAULT '' COMMENT '部门ID列表（逗号分隔）',
+    `user_ids` varchar(1000) DEFAULT '' COMMENT '用户ID列表（逗号分隔）',
+    `custom_condition` text COMMENT '自定义条件（SQL WHERE条件）',
+    `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
+    `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`id`),
+    KEY `idx_role_id` (`role_id`),
+    KEY `idx_resource_type` (`resource_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据权限表';
+
+-- 字段权限表（支持字段级权限控制）
+CREATE TABLE IF NOT EXISTS `sys_field_permission` (
+    `id` bigint NOT NULL COMMENT '字段权限ID',
+    `role_id` bigint NOT NULL COMMENT '角色ID',
+    `resource_type` varchar(50) NOT NULL COMMENT '资源类型（表名）',
+    `field_name` varchar(50) NOT NULL COMMENT '字段名称',
+    `permission_type` char(1) DEFAULT '1' COMMENT '权限类型（1可见 2可编辑 3脱敏显示 4不可见）',
+    `mask_type` varchar(20) DEFAULT '' COMMENT '脱敏类型（phone手机号 email邮箱 idcard身份证 custom自定义）',
+    `mask_rule` varchar(100) DEFAULT '' COMMENT '脱敏规则',
+    `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
+    `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_role_resource` (`role_id`, `resource_type`),
+    KEY `idx_field_name` (`field_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='字段权限表';
+
+-- ===========================================
+-- 权限管理初始化数据
+-- ===========================================
+
+-- 插入基础权限
+INSERT IGNORE INTO `sys_permission` (`id`, `permission_name`, `permission_code`, `permission_type`, `resource_type`, `resource_path`, `http_method`, `parent_id`, `level`, `sort_order`, `status`, `create_by`, `remark`) VALUES
+(1, '系统管理', 'system', '1', 'MODULE', '', '', 0, 1, 1, '0', 'admin', '系统管理模块'),
+(2, '用户管理', 'system:user', '1', 'MODULE', '', '', 1, 2, 1, '0', 'admin', '用户管理模块'),
+(3, '用户查询', 'system:user:list', '1', 'API', '/system/user/list', 'GET', 2, 3, 1, '0', 'admin', '用户查询权限'),
+(4, '用户新增', 'system:user:add', '1', 'API', '/system/user', 'POST', 2, 3, 2, '0', 'admin', '用户新增权限'),
+(5, '用户修改', 'system:user:edit', '1', 'API', '/system/user', 'PUT', 2, 3, 3, '0', 'admin', '用户修改权限'),
+(6, '用户删除', 'system:user:remove', '1', 'API', '/system/user', 'DELETE', 2, 3, 4, '0', 'admin', '用户删除权限'),
+(7, '角色管理', 'system:role', '1', 'MODULE', '', '', 1, 2, 2, '0', 'admin', '角色管理模块'),
+(8, '角色查询', 'system:role:list', '1', 'API', '/system/role/list', 'GET', 7, 3, 1, '0', 'admin', '角色查询权限'),
+(9, '角色新增', 'system:role:add', '1', 'API', '/system/role', 'POST', 7, 3, 2, '0', 'admin', '角色新增权限'),
+(10, '角色修改', 'system:role:edit', '1', 'API', '/system/role', 'PUT', 7, 3, 3, '0', 'admin', '角色修改权限'),
+(11, '角色删除', 'system:role:remove', '1', 'API', '/system/role', 'DELETE', 7, 3, 4, '0', 'admin', '角色删除权限');
+
+-- 为超级管理员角色分配权限
+INSERT IGNORE INTO `sys_role_permission` (`role_id`, `permission_id`) VALUES
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11);
+
+-- 插入默认数据权限（超级管理员全部数据权限）
+INSERT IGNORE INTO `sys_data_permission` (`id`, `role_id`, `resource_type`, `permission_type`, `status`, `create_by`, `remark`) VALUES
+(1, 1, 'sys_user', '1', '0', 'admin', '超级管理员-用户数据全部权限'),
+(2, 1, 'sys_role', '1', '0', 'admin', '超级管理员-角色数据全部权限'),
+(3, 1, 'sys_dept', '1', '0', 'admin', '超级管理员-部门数据全部权限');

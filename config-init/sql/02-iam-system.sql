@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `sys_message` (
 
 -- 插入初始数据
 -- 插入默认配置
-INSERT INTO `sys_config` (`id`, `config_name`, `config_key`, `config_value`, `config_type`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_config` (`id`, `config_name`, `config_key`, `config_value`, `config_type`, `create_by`, `remark`) VALUES
 (1, '主框架页-默认皮肤样式名称', 'sys.index.skinName', 'skin-blue', 'Y', 'admin', '蓝色 skin-blue、绿色 skin-green、紫色 skin-purple、红色 skin-red、黄色 skin-yellow'),
 (2, '用户管理-账号初始密码', 'sys.user.initPassword', '123456', 'Y', 'admin', '初始化密码 123456'),
 (3, '主框架页-侧边栏主题', 'sys.index.sideTheme', 'theme-dark', 'Y', 'admin', '深色主题theme-dark，浅色主题theme-light'),
@@ -99,7 +99,7 @@ INSERT INTO `sys_config` (`id`, `config_name`, `config_key`, `config_value`, `co
 (6, '用户登录-黑名单列表', 'sys.login.blackIPList', '', 'Y', 'admin', '设置登录IP黑名单限制，多个匹配项以;分隔，支持匹配（*通配、网段）');
 
 -- 插入默认字典类型
-INSERT INTO `sys_dict_type` (`id`, `dict_name`, `dict_type`, `status`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_dict_type` (`id`, `dict_name`, `dict_type`, `status`, `create_by`, `remark`) VALUES
 (1, '用户性别', 'sys_user_sex', '0', 'admin', '用户性别列表'),
 (2, '菜单状态', 'sys_show_hide', '0', 'admin', '菜单状态列表'),
 (3, '系统开关', 'sys_normal_disable', '0', 'admin', '系统开关列表'),
@@ -112,7 +112,7 @@ INSERT INTO `sys_dict_type` (`id`, `dict_name`, `dict_type`, `status`, `create_b
 (10, '系统状态', 'sys_common_status', '0', 'admin', '登录状态列表');
 
 -- 插入默认字典数据
-INSERT INTO `sys_dict_data` (`id`, `dict_sort`, `dict_label`, `dict_value`, `dict_type`, `css_class`, `list_class`, `is_default`, `status`, `create_by`, `remark`) VALUES
+INSERT IGNORE INTO `sys_dict_data` (`id`, `dict_sort`, `dict_label`, `dict_value`, `dict_type`, `css_class`, `list_class`, `is_default`, `status`, `create_by`, `remark`) VALUES
 (1, 1, '男', '0', 'sys_user_sex', '', '', 'Y', '0', 'admin', '性别男'),
 (2, 2, '女', '1', 'sys_user_sex', '', '', 'N', '0', 'admin', '性别女'),
 (3, 3, '未知', '2', 'sys_user_sex', '', '', 'N', '0', 'admin', '性别未知'),
@@ -141,3 +141,71 @@ INSERT INTO `sys_dict_data` (`id`, `dict_sort`, `dict_label`, `dict_value`, `dic
 (26, 9, '清空数据', '8', 'sys_oper_type', '', 'danger', 'N', '0', 'admin', '清空操作'),
 (27, 1, '成功', '0', 'sys_common_status', '', 'primary', 'N', '0', 'admin', '正常状态'),
 (28, 2, '失败', '1', 'sys_common_status', '', 'danger', 'N', '0', 'admin', '停用状态');
+
+-- ===========================================
+-- 系统管理增强表结构
+-- ===========================================
+
+-- 通知模板表
+CREATE TABLE IF NOT EXISTS `sys_notification_template` (
+    `id` bigint NOT NULL COMMENT '模板ID',
+    `template_code` varchar(100) NOT NULL COMMENT '模板编码',
+    `template_name` varchar(100) NOT NULL COMMENT '模板名称',
+    `template_type` varchar(20) NOT NULL COMMENT '模板类型（EMAIL邮件 SMS短信 WECHAT微信 INTERNAL站内信）',
+    `subject` varchar(200) DEFAULT '' COMMENT '主题',
+    `content` text COMMENT '内容模板',
+    `variables` varchar(1000) DEFAULT '' COMMENT '变量列表（JSON格式）',
+    `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
+    `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_template_code` (`template_code`),
+    KEY `idx_template_type` (`template_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知模板表';
+
+-- 定时任务表
+CREATE TABLE IF NOT EXISTS `sys_job` (
+    `id` bigint NOT NULL COMMENT '任务ID',
+    `job_name` varchar(64) NOT NULL COMMENT '任务名称',
+    `job_group` varchar(64) NOT NULL COMMENT '任务组名',
+    `invoke_target` varchar(500) NOT NULL COMMENT '调用目标字符串',
+    `cron_expression` varchar(255) DEFAULT '' COMMENT 'cron执行表达式',
+    `misfire_policy` varchar(20) DEFAULT 'MISFIRE_DEFAULT' COMMENT '计划执行错误策略（MISFIRE_DEFAULT默认 MISFIRE_IGNORE_MISFIRES忽略 MISFIRE_FIRE_AND_PROCEED立即触发执行 MISFIRE_DO_NOTHING触发一次执行）',
+    `concurrent` char(1) DEFAULT '1' COMMENT '是否并发执行（0允许 1禁止）',
+    `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1暂停）',
+    `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `remark` varchar(500) DEFAULT '' COMMENT '备注信息',
+    PRIMARY KEY (`id`),
+    KEY `idx_job_group` (`job_group`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='定时任务调度表';
+
+-- 定时任务执行日志表
+CREATE TABLE IF NOT EXISTS `sys_job_log` (
+    `id` bigint NOT NULL COMMENT '任务日志ID',
+    `job_name` varchar(64) NOT NULL COMMENT '任务名称',
+    `job_group` varchar(64) NOT NULL COMMENT '任务组名',
+    `invoke_target` varchar(500) NOT NULL COMMENT '调用目标字符串',
+    `job_message` varchar(500) DEFAULT NULL COMMENT '日志信息',
+    `status` char(1) DEFAULT '0' COMMENT '执行状态（0正常 1失败）',
+    `exception_info` text COMMENT '异常信息',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_job_name` (`job_name`),
+    KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='定时任务调度日志表';
+
+-- ===========================================
+-- 系统管理初始化数据
+-- ===========================================
+
+-- 插入通知模板示例
+INSERT IGNORE INTO `sys_notification_template` (`id`, `template_code`, `template_name`, `template_type`, `subject`, `content`, `variables`, `status`, `create_by`, `remark`) VALUES
+(1, 'USER_REGISTER', '用户注册通知', 'EMAIL', '欢迎注册小信云IAM平台', '亲爱的${username}，欢迎您注册小信云IAM平台！您的初始密码是：${password}，请及时修改密码。', '["username","password"]', '0', 'admin', '用户注册邮件模板'),
+(2, 'PASSWORD_RESET', '密码重置通知', 'EMAIL', '密码重置通知', '您的密码重置验证码是：${code}，有效期10分钟，请勿泄露给他人。', '["code"]', '0', 'admin', '密码重置邮件模板'),
+(3, 'LOGIN_ALERT', '异常登录提醒', 'SMS', '', '您的账户在${time}从${location}登录，如非本人操作请及时修改密码。', '["time","location"]', '0', 'admin', '异常登录短信模板');

@@ -3,7 +3,7 @@ package com.xiaoxin.iam.common.constant;
 /**
  * 通用常量定义
  * 包含系统中常用的常量值
- * 
+ *
  * @author xiaoxin
  * @since 1.0.0
  */

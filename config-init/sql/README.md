@@ -97,6 +97,7 @@ mysql -h <HOST> -P <PORT> -u <USERNAME> -p iam_auth < 03-iam-auth.sql
 
 # 4. 执行 iam_audit 数据库脚本
 mysql -h <HOST> -P <PORT> -u <USERNAME> -p iam_audit < 04-iam-audit.sql
+
 ```
 
 #### 方式二：通过数据库管理工具执行
@@ -114,30 +115,60 @@ docker exec -i <container_name> mysql -u root -p iam_core < /tmp/01-iam-core.sql
 ## 脚本说明
 
 ### 01-iam-core.sql
+**基础表结构：**
 - 用户表 (`sys_user`)
 - 角色表 (`sys_role`)
 - 菜单表 (`sys_menu`)
 - 部门表 (`sys_dept`)
 - 岗位表 (`sys_post`)
 - 各种关联表
-- 初始数据：管理员用户、默认角色、菜单、部门、岗位
+
+**权限管理增强：**
+- 权限表 (`sys_permission`) - 独立权限管理
+- 角色权限关联表 (`sys_role_permission`)
+- 用户部门关联表 (`sys_user_dept`) - 支持多部门
+- 数据权限表 (`sys_data_permission`) - 细粒度数据权限
+- 字段权限表 (`sys_field_permission`) - 字段级权限控制
+
+**初始数据：** 管理员用户、默认角色、菜单、部门、岗位、基础权限
 
 ### 02-iam-system.sql
+**基础表结构：**
 - 参数配置表 (`sys_config`)
 - 字典类型表 (`sys_dict_type`)
 - 字典数据表 (`sys_dict_data`)
 - 通知公告表 (`sys_notice`)
 - 消息通知表 (`sys_message`)
-- 初始数据：系统配置、字典数据
+
+**系统管理增强：**
+- 通知模板表 (`sys_notification_template`)
+- 定时任务表 (`sys_job`)
+- 定时任务执行日志表 (`sys_job_log`)
+
+**初始数据：** 系统配置、字典数据、通知模板
 
 ### 03-iam-auth.sql
+**基础表结构：**
 - OAuth2客户端表 (`oauth2_registered_client`)
 - OAuth2授权表 (`oauth2_authorization`)
-- 初始数据：默认OAuth2客户端
+
+**第三方登录增强：**
+- OAuth2授权同意表 (`oauth2_authorization_consent`)
+- 第三方登录配置表 (`sys_third_party_config`)
+- 用户第三方账号绑定表 (`sys_user_third_party`)
+
+**初始数据：** 默认OAuth2客户端、第三方登录配置
 
 ### 04-iam-audit.sql
+**基础表结构：**
 - 操作日志表 (`sys_oper_log`)
 - 登录日志表 (`sys_logininfor`)
+
+**审计日志增强：**
+- 审计日志表 (`sys_audit_log`) - 通用审计日志
+- 权限变更日志表 (`sys_permission_change_log`)
+- 数据访问日志表 (`sys_data_access_log`)
+
 
 ## 默认账号信息
 
@@ -192,20 +223,41 @@ docker exec -i <container_name> mysql -u root -p iam_core < /tmp/01-iam-core.sql
 USE iam_core;
 SHOW TABLES;
 SELECT COUNT(*) FROM sys_user;
+SELECT COUNT(*) FROM sys_permission;
 
 -- 检查iam_system数据库  
 USE iam_system;
 SHOW TABLES;
 SELECT COUNT(*) FROM sys_config;
+SELECT COUNT(*) FROM sys_notification_template;
 
 -- 检查iam_auth数据库
 USE iam_auth;
 SHOW TABLES;
 SELECT COUNT(*) FROM oauth2_registered_client;
+SELECT COUNT(*) FROM sys_third_party_config;
 
 -- 检查iam_audit数据库
 USE iam_audit;
 SHOW TABLES;
+SELECT COUNT(*) FROM sys_oper_log;
+SELECT COUNT(*) FROM sys_audit_log;
+
+-- 验证增强功能表数量
+SELECT 
+    'iam_core' as database_name,
+    (SELECT COUNT(*) FROM iam_core.sys_permission) as permission_count,
+    (SELECT COUNT(*) FROM iam_core.sys_data_permission) as data_permission_count
+UNION ALL
+SELECT 
+    'iam_auth' as database_name,
+    (SELECT COUNT(*) FROM iam_auth.sys_third_party_config) as third_party_config_count,
+    0 as data_permission_count
+UNION ALL
+SELECT 
+    'iam_system' as database_name,
+    (SELECT COUNT(*) FROM iam_system.sys_notification_template) as notification_template_count,
+    0 as data_permission_count;
 ```
 
 ## 联系支持
