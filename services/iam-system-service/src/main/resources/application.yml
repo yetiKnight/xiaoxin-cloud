@@ -9,27 +9,37 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
-        namespace: iam-platform
-        group: DEFAULT_GROUP
+        server-addr: ${nacos.server-addr:localhost:8848}
+        namespace: ${nacos.namespace:dev}
+        group: IAM_GROUP
+        cluster-name: ${spring.profiles.active}
+        metadata:
+          version: ${project.version:1.0.0}
+          zone: ${app.zone:default}
       config:
-        server-addr: localhost:8848
-        namespace: iam-platform
-        group: DEFAULT_GROUP
+        server-addr: ${nacos.server-addr:localhost:8848}
+        namespace: ${nacos.namespace:dev}
+        group: IAM_GROUP
         file-extension: yml
         shared-configs:
           - data-id: iam-common.yml
-            group: DEFAULT_GROUP
+            group: IAM_GROUP
             refresh: true
+        refresh-enabled: true
+    sentinel:
+      transport:
+        dashboard: ${sentinel.dashboard:localhost:8080}
+        port: 8720
+      eager: true
 
 # 数据源配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/iam_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-      username: root
-      password: 123456
+      driver-class-name: ${db.driver-class-name:com.mysql.cj.jdbc.Driver}
+      url: ${db.url:jdbc:mysql://localhost:3306/iam_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8}
+      username: ${db.username:root}
+      password: ${db.password:123456}
       initial-size: 10
       max-active: 100
       min-idle: 10
@@ -55,18 +65,19 @@ spring:
             multi-statement-allow: true
 
 # Redis配置
-  redis:
-    host: localhost
-    port: 6379
-    password: 
-    database: 4
-    timeout: 10000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-wait: -1ms
-        max-idle: 8
-        min-idle: 0
+  data:
+    redis:
+      host: ${redis.host:localhost}
+      port: ${redis.port:6379}
+      password: ${redis.password:}
+      database: ${redis.database.system:4}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
 # MyBatis Plus配置
 mybatis-plus:
@@ -87,8 +98,8 @@ mybatis-plus:
 # 日志配置
 logging:
   level:
-    com.xiaoxin.iam.system: debug
-    org.springframework.cloud: debug
+    '[com.xiaoxin.iam.system]': debug
+    '[org.springframework.cloud]': debug
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
 

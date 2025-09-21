@@ -1,0 +1,226 @@
+---
+globs: pom.xml,**/pom.xml
+---
+
+# Maven依赖管理规范
+
+## 项目结构
+
+### 父POM配置
+- **根目录**: [pom.xml](mdc:pom.xml) - 定义模块列表和基础配置
+- **依赖管理**: [iam-dependencies/pom.xml](mdc:iam-dependencies/pom.xml) - 统一版本管理
+
+### 模块依赖关系
+```
+iam-platform (父POM)
+├── iam-dependencies (依赖版本管理)
+├── iam-common (公共模块)
+├── iam-starters (Starter集合)
+│   ├── iam-spring-boot-starter
+│   ├── iam-spring-boot-starter-web
+│   └── ...其他starters
+├── iam-gateway (网关服务)
+├── services/ (微服务模块)
+└── apps/ (应用模块)
+```
+
+## 版本管理策略
+
+### 1. 统一版本定义
+所有第三方依赖版本在`iam-dependencies`模块中统一管理：
+
+```xml
+<properties>
+    <!-- Spring相关 -->
+    <spring-boot.version>3.2.9</spring-boot.version>
+    <spring-cloud.version>2023.0.3</spring-cloud.version>
+    <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
+    
+    <!-- 数据库相关 -->
+    <mysql.version>8.0.33</mysql.version>
+    <mybatis-plus.version>3.5.4.1</mybatis-plus.version>
+    <druid.version>1.2.20</druid.version>
+</properties>
+```
+
+### 2. 依赖导入方式
+```xml
+<dependencyManagement>
+    <dependencies>
+        <!-- 导入IAM平台依赖管理 -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-dependencies</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+## Starter模块使用规范
+
+### 1. 基础功能
+```xml
+<!-- 基础Starter，包含统一响应、异常处理等 -->
+<dependency>
+    <groupId>com.xiaoxin</groupId>
+    <artifactId>iam-spring-boot-starter</artifactId>
+</dependency>
+```
+
+### 2. Web功能
+```xml
+<!-- Web相关功能，包含Spring Web、OpenFeign等 -->
+<dependency>
+    <groupId>com.xiaoxin</groupId>
+    <artifactId>iam-spring-boot-starter-web</artifactId>
+</dependency>
+```
+
+### 3. 数据访问
+```xml
+<!-- 数据访问功能，包含MyBatis Plus、Redis等 -->
+<dependency>
+    <groupId>com.xiaoxin</groupId>
+    <artifactId>iam-spring-boot-starter-data</artifactId>
+</dependency>
+```
+
+### 4. 安全功能
+```xml
+<!-- 安全相关功能，包含Spring Security、OAuth2等 -->
+<dependency>
+    <groupId>com.xiaoxin</groupId>
+    <artifactId>iam-spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+## 依赖管理最佳实践
+
+### 1. 版本冲突解决
+- 使用`mvn dependency:tree`检查依赖树
+- 通过`<exclusions>`排除冲突依赖
+- 优先使用平台统一管理的版本
+
+### 2. 范围管理
+```xml
+<!-- 仅编译时需要 -->
+<scope>provided</scope>
+
+<!-- 仅测试时需要 -->
+<scope>test</scope>
+
+<!-- 运行时需要 -->
+<scope>runtime</scope>
+```
+
+### 3. 可选依赖
+```xml
+<!-- 可选依赖，不会被传递 -->
+<optional>true</optional>
+```
+
+## 插件配置规范
+
+### 1. 编译插件
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <source>17</source>
+        <target>17</target>
+        <encoding>UTF-8</encoding>
+    </configuration>
+</plugin>
+```
+
+### 2. Spring Boot插件
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>
+        <excludes>
+            <exclude>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+            </exclude>
+        </excludes>
+    </configuration>
+</plugin>
+```
+
+### 3. 测试插件
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <configuration>
+        <skipTests>false</skipTests>
+        <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+        </includes>
+    </configuration>
+</plugin>
+```
+
+## 多环境配置
+
+### 1. Profile配置
+```xml
+<profiles>
+    <profile>
+        <id>dev</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+        <properties>
+            <spring.profiles.active>dev</spring.profiles.active>
+        </properties>
+    </profile>
+    
+    <profile>
+        <id>prod</id>
+        <properties>
+            <spring.profiles.active>prod</spring.profiles.active>
+        </properties>
+    </profile>
+</profiles>
+```
+
+### 2. 资源过滤
+```xml
+<resources>
+    <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+            <include>**/*.yml</include>
+            <include>**/*.properties</include>
+        </includes>
+    </resource>
+</resources>
+```
+
+## 构建优化
+
+### 1. 依赖分析
+```bash
+# 分析依赖
+mvn dependency:analyze
+
+# 解决依赖
+mvn dependency:resolve
+
+# 依赖树
+mvn dependency:tree
+```
+
+### 2. 构建加速
+- 使用阿里云Maven仓库
+- 启用并行构建：`mvn -T 1C clean install`
+- 跳过测试：`mvn clean install -DskipTests`

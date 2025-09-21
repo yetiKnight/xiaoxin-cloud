@@ -1,0 +1,256 @@
+---
+globs: **/entity/**/*.java,**/mapper/**/*.java,**/*.sql
+---
+
+# 数据库设计与开发规范
+
+## 数据库架构设计
+
+### 按业务领域拆分数据库
+| 数据库名 | 用途 | 对应服务 |
+|---------|------|----------|
+| iam_auth | 认证授权数据 | iam-auth-service |
+| iam_core | 核心业务数据 | iam-core-service |
+| iam_audit | 审计日志数据 | iam-audit-service |
+| iam_system | 系统配置数据 | iam-system-service |
+
+### 数据库初始化脚本
+参考配置脚本：
+- [01-iam-core.sql](mdc:config-init/sql/01-iam-core.sql)
+- [02-iam-system.sql](mdc:config-init/sql/02-iam-system.sql)
+- [03-iam-auth.sql](mdc:config-init/sql/03-iam-auth.sql)
+- [04-iam-audit.sql](mdc:config-init/sql/04-iam-audit.sql)
+
+## 实体类设计规范
+
+### 1. 基础实体类
+```java
+@Data
+@EqualsAndHashCode(callSuper = false)
+@TableName("sys_user")
+@ApiModel(value = "用户实体", description = "系统用户信息")
+public class User extends BaseEntity {
+    
+    @ApiModelProperty("用户ID")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    private Long id;
+    
+    @ApiModelProperty("用户名")
+    @TableField("username")
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 4, max = 20, message = "用户名长度必须在4-20之间")
+    private String username;
+    
+    @ApiModelProperty("密码")
+    @TableField("password")
+    @JsonIgnore
+    private String password;
+    
+    @ApiModelProperty("用户状态")
+    @TableField("status")
+    private UserStatus status;
+}
+```
+
+### 2. 基础实体抽象类
+```java
+@Data
+@EqualsAndHashCode(callSuper = false)
+public abstract class BaseEntity implements Serializable {
+    
+    @ApiModelProperty("创建时间")
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+    
+    @ApiModelProperty("更新时间")
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+    
+    @ApiModelProperty("创建人ID")
+    @TableField(value = "create_by", fill = FieldFill.INSERT)
+    private Long createBy;
+    
+    @ApiModelProperty("更新人ID")
+    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
+    private Long updateBy;
+    
+    @ApiModelProperty("逻辑删除标志")
+    @TableField("is_deleted")
+    @TableLogic
+    private Boolean deleted = false;
+}
+```
+
+## MyBatis Plus使用规范
+
+### 1. Mapper接口定义
+```java
+@Mapper
+public interface UserMapper extends BaseMapper<User> {
+    
+    /**
+     * 根据用户名查询用户
+     */
+    @Select("SELECT * FROM sys_user WHERE username = #{username} AND is_deleted = 0")
+    User findByUsername(@Param("username") String username);
+    
+    /**
+     * 分页查询用户列表
+     */
+    IPage<UserVO> selectUserPage(IPage<User> page, @Param("query") UserQueryDTO query);
+}
+```
+
+### 2. 自定义SQL映射
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoxin.iam.core.mapper.UserMapper">
+    
+    <resultMap id="UserVOMap" type="com.xiaoxin.iam.core.vo.UserVO">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="real_name" property="realName"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="status" property="status"/>
+        <result column="dept_name" property="deptName"/>
+        <collection property="roles" ofType="com.xiaoxin.iam.core.vo.RoleVO">
+            <id column="role_id" property="id"/>
+            <result column="role_name" property="name"/>
+            <result column="role_code" property="code"/>
+        </collection>
+    </resultMap>
+    
+    <select id="selectUserPage" resultMap="UserVOMap">
+        SELECT 
+            u.id, u.username, u.real_name, u.email, u.phone, u.status,
+            d.name as dept_name,
+            r.id as role_id, r.name as role_name, r.code as role_code
+        FROM sys_user u
+        LEFT JOIN sys_department d ON u.dept_id = d.id
+        LEFT JOIN sys_user_role ur ON u.id = ur.user_id
+        LEFT JOIN sys_role r ON ur.role_id = r.id
+        <where>
+            u.is_deleted = 0
+            <if test="query.username != null and query.username != ''">
+                AND u.username LIKE CONCAT('%', #{query.username}, '%')
+            </if>
+            <if test="query.deptId != null">
+                AND u.dept_id = #{query.deptId}
+            </if>
+            <if test="query.status != null">
+                AND u.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY u.create_time DESC
+    </select>
+</mapper>
+```
+
+## 数据库设计规范
+
+### 1. 表命名规范
+- 表名使用小写字母和下划线
+- 表名前缀按模块区分：`sys_`、`auth_`、`audit_`
+- 中间表命名：`{table1}_{table2}`
+
+### 2. 字段设计规范
+```sql
+-- 标准字段定义
+CREATE TABLE `sys_user` (
+  `id` BIGINT(20) NOT NULL COMMENT '用户ID',
+  `username` VARCHAR(50) NOT NULL COMMENT '用户名',
+  `password` VARCHAR(100) NOT NULL COMMENT '密码',
+  `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
+  `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
+  `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号',
+  `status` TINYINT(1) NOT NULL DEFAULT '1' COMMENT '状态(1:启用 0:禁用)',
+  `dept_id` BIGINT(20) DEFAULT NULL COMMENT '部门ID',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_by` BIGINT(20) DEFAULT NULL COMMENT '创建人',
+  `update_by` BIGINT(20) DEFAULT NULL COMMENT '更新人',
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '删除标志(0:正常 1:删除)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`),
+  KEY `idx_dept_id` (`dept_id`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+```
+
+### 3. 索引设计
+- 主键索引：每表必须有主键
+- 唯一索引：用户名、邮箱等唯一字段
+- 普通索引：经常查询的字段
+- 复合索引：多字段联合查询
+
+### 4. 数据类型选择
+- 主键：`BIGINT(20)`
+- 字符串：`VARCHAR(长度)`，长度根据业务需要
+- 时间：`DATETIME`，统一使用DATETIME类型
+- 金额：`DECIMAL(10,2)`
+- 状态：`TINYINT(1)`
+
+## 事务管理
+
+### 1. 事务注解使用
+```java
+@Service
+@Transactional(rollbackFor = Exception.class)
+public class UserServiceImpl implements UserService {
+    
+    @Override
+    @Transactional(readOnly = true)
+    public UserVO getUserById(Long id) {
+        // 只读事务
+    }
+    
+    @Override
+    public void createUser(UserCreateDTO dto) {
+        // 写事务，自动回滚所有异常
+    }
+}
+```
+
+### 2. 分布式事务
+```java
+@GlobalTransactional(rollbackFor = Exception.class)
+public void createUserWithRole(UserCreateDTO dto) {
+    // 跨服务的分布式事务
+    userService.createUser(dto);
+    roleService.assignDefaultRole(dto.getUserId());
+}
+```
+
+## 性能优化
+
+### 1. 分页查询
+```java
+// 使用MyBatis Plus分页插件
+IPage<User> page = new Page<>(current, size);
+IPage<UserVO> result = userMapper.selectUserPage(page, query);
+```
+
+### 2. 批量操作
+```java
+// 批量插入
+userMapper.insertBatch(userList);
+
+// 批量更新
+userMapper.updateBatchById(userList);
+```
+
+### 3. 缓存使用
+```java
+@Cacheable(value = "user", key = "#id")
+public UserVO getUserById(Long id) {
+    return userMapper.selectUserById(id);
+}
+
+@CacheEvict(value = "user", key = "#user.id")
+public void updateUser(User user) {
+    userMapper.updateById(user);
+}
+```

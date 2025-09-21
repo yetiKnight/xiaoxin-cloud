@@ -1,0 +1,227 @@
+---
+globs: **/config/**/*.java,application*.yml,bootstrap*.yml
+---
+
+# Spring Cloud Alibaba开发规范
+
+## 版本约束
+- Spring Boot: 3.2.9
+- Spring Cloud: 2023.0.3
+- Spring Cloud Alibaba: 2023.0.3.3
+- JDK: 17+
+
+## Nacos配置中心使用规范
+
+### 1. 配置文件命名
+```
+{spring.application.name}-{spring.profiles.active}.{file-extension}
+例: iam-auth-service-dev.yml
+```
+
+### 2. 配置分层
+```yaml
+# 公共配置 - iam-common.yml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+# 服务配置 - iam-auth-service-dev.yml  
+server:
+  port: 8081
+spring:
+  application:
+    name: iam-auth-service
+```
+
+### 3. 配置刷新
+```java
+@RefreshScope
+@Component
+public class ConfigProperties {
+    @Value("${app.config.value}")
+    private String configValue;
+}
+```
+
+## Nacos服务注册发现
+
+### 1. 服务注册配置
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${nacos.server-addr:localhost:8848}
+        namespace: ${nacos.namespace:dev}
+        group: IAM_GROUP
+        cluster-name: ${spring.profiles.active}
+        metadata:
+          version: ${project.version:1.0.0}
+          zone: ${app.zone:default}
+```
+
+### 2. 服务发现使用
+```java
+@Autowired
+private DiscoveryClient discoveryClient;
+
+public List<ServiceInstance> getInstances(String serviceName) {
+    return discoveryClient.getInstances(serviceName);
+}
+```
+
+## Sentinel限流熔断
+
+### 1. 限流规则配置
+```java
+@PostConstruct
+public void initFlowRules() {
+    List<FlowRule> rules = new ArrayList<>();
+    FlowRule rule = new FlowRule();
+    rule.setResource("getUserById");
+    rule.setGrade(RuleConstant.FLOW_GRADE_QPS);
+    rule.setCount(20);
+    rules.add(rule);
+    FlowRuleManager.loadRules(rules);
+}
+```
+
+### 2. 熔断降级
+```java
+@SentinelResource(
+    value = "resourceName",
+    fallback = "fallbackMethod",
+    blockHandler = "blockHandlerMethod"
+)
+public String protectedMethod() {
+    // 业务逻辑
+    return "success";
+}
+
+public String fallbackMethod(Throwable ex) {
+    return "服务暂时不可用";
+}
+
+public String blockHandlerMethod(BlockException ex) {
+    return "请求被限流";
+}
+```
+
+## RocketMQ消息队列
+
+### 1. 生产者配置
+```java
+@Component
+public class MessageProducer {
+    
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+    
+    public void sendMessage(String topic, Object message) {
+        rocketMQTemplate.convertAndSend(topic, message);
+    }
+}
+```
+
+### 2. 消费者配置
+```java
+@RocketMQMessageListener(
+    topic = "user-events",
+    consumerGroup = "audit-consumer-group",
+    messageModel = MessageModel.CLUSTERING
+)
+@Component
+public class UserEventConsumer implements RocketMQListener<UserEvent> {
+    
+    @Override
+    public void onMessage(UserEvent userEvent) {
+        log.info("收到用户事件: {}", userEvent);
+        // 处理业务逻辑
+    }
+}
+```
+
+## Seata分布式事务
+
+### 1. 全局事务配置
+```java
+@GlobalTransactional(
+    name = "createUserTransaction",
+    rollbackFor = Exception.class,
+    timeoutMills = 30000
+)
+public void createUserWithAssociatedData(UserCreateDTO dto) {
+    // 创建用户
+    userService.createUser(dto);
+    // 分配角色  
+    roleService.assignDefaultRole(dto.getUserId());
+    // 记录审计日志
+    auditService.recordUserCreation(dto);
+}
+```
+
+### 2. 事务模式选择
+- **AT模式**: 适用于大部分业务场景
+- **TCC模式**: 需要高性能场景
+- **SAGA模式**: 长事务场景
+- **XA模式**: 强一致性要求
+
+## Spring Cloud Gateway网关
+
+### 1. 路由配置
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: iam-auth-service
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=2
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+```
+
+### 2. 全局过滤器
+```java
+@Component
+public class AuthGlobalFilter implements GlobalFilter, Ordered {
+    
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 认证逻辑
+        return chain.filter(exchange);
+    }
+    
+    @Override
+    public int getOrder() {
+        return -100;
+    }
+}
+```
+
+## 最佳实践
+
+### 1. 配置外部化
+- 敏感配置加密存储
+- 环境相关配置动态刷新
+- 配置版本管理
+
+### 2. 服务监控
+- 集成Actuator健康检查
+- Prometheus指标暴露
+- 链路追踪集成
+
+### 3. 异常处理
+- 统一异常处理机制
+- 服务降级策略
+- 超时重试配置
+
+### 4. 安全策略
+- 服务间认证
+- 传输加密
+- 接口鉴权

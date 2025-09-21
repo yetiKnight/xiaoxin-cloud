@@ -8,7 +8,7 @@
         <artifactId>iam-platform</artifactId>
         <groupId>com.xiaoxin</groupId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>iam-auth-service</artifactId>

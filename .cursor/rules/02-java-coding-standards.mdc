@@ -1,0 +1,109 @@
+---
+globs: *.java
+---
+
+# Java代码开发规范
+
+## 基础规范
+- 遵循阿里巴巴Java开发手册规范
+- 使用JDK 17特性
+- 统一使用UTF-8编码
+- 代码注释完整，使用中文注释
+
+## 包结构规范
+```
+com.xiaoxin.iam.{module}.{layer}
+├── controller/     # 控制器层
+├── service/        # 服务层  
+│   └── impl/       # 服务实现
+├── mapper/         # 数据访问层
+├── entity/         # 实体类
+├── dto/            # 数据传输对象
+├── vo/             # 视图对象
+├── config/         # 配置类
+├── constant/       # 常量类
+└── enums/          # 枚举类
+```
+
+## 代码规范要点
+
+### 1. 类命名规范
+- Controller: `XxxController`
+- Service: `XxxService` 和 `XxxServiceImpl`
+- Mapper: `XxxMapper`
+- Entity: 使用业务含义的名称
+- DTO: `XxxDTO`
+- VO: `XxxVO`
+
+### 2. 必须使用的注解
+```java
+// Lombok注解
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+
+// Spring注解
+@Service
+@RestController
+@RequestMapping
+@Validated
+```
+
+### 3. 统一异常处理
+```java
+// 业务异常统一抛出BusinessException
+throw new BusinessException(ResultCode.USER_NOT_FOUND);
+
+// 使用全局异常处理器处理异常
+```
+
+### 4. 统一响应格式
+```java
+// 成功响应
+return Result.success(data);
+
+// 失败响应  
+return Result.error(ResultCode.ERROR);
+```
+
+### 5. 参数校验
+```java
+// 使用Bean Validation注解
+@NotNull(message = "用户ID不能为空")
+@NotBlank(message = "用户名不能为空")
+@Size(min = 6, max = 20, message = "密码长度必须在6-20之间")
+```
+
+### 6. 日志规范
+```java
+// 使用Slf4j日志
+@Slf4j
+public class UserService {
+    public void method() {
+        log.info("用户操作: userId={}", userId);
+        log.error("操作失败: {}", e.getMessage(), e);
+    }
+}
+```
+
+### 7. 常量定义
+```java
+// 使用枚举或常量类
+public class Constants {
+    public static final String DEFAULT_PASSWORD = "123456";
+    public static final int TOKEN_EXPIRE_TIME = 7200;
+}
+```
+
+## 代码质量要求
+- 单元测试覆盖率 > 80%
+- 代码复杂度控制在合理范围
+- 避免重复代码，抽取公共方法
+- 合理使用设计模式
+
+## 性能规范
+- 数据库查询使用分页
+- 合理使用缓存
+- 避免N+1查询问题
+- 使用连接池管理数据库连接

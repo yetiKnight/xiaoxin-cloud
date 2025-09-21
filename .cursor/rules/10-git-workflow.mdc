@@ -1,0 +1,265 @@
+---
+globs: .git/**,*.md,commitlint.config.js,.gitmessage
+---
+
+# Git工作流与提交规范
+
+## Git提交规范
+
+### 1. 提交信息格式
+遵循[Conventional Commits](https://www.conventionalcommits.org/)规范：
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### 2. Type类型定义
+参考[commitlint.config.js](mdc:commitlint.config.js)配置：
+
+| 类型 | 说明 | 示例 |
+|------|------|------|
+| `feat` | 新功能 | `feat(auth): 添加OAuth2登录支持` |
+| `fix` | 修复bug | `fix(core): 解决用户创建验证问题` |
+| `docs` | 文档更新 | `docs: 更新API文档` |
+| `style` | 代码格式调整 | `style: 按照代码规范格式化代码` |
+| `refactor` | 重构代码 | `refactor(core): 简化用户服务逻辑` |
+| `perf` | 性能优化 | `perf(auth): 优化令牌验证性能` |
+| `test` | 测试相关 | `test(core): 为用户服务添加单元测试` |
+| `chore` | 构建过程或辅助工具的变动 | `chore: 更新依赖包` |
+| `ci` | 持续集成相关 | `ci: 添加GitHub Actions工作流` |
+| `build` | 构建系统或外部依赖的变动 | `build: 更新Maven配置` |
+
+### 3. Scope范围定义
+| 范围 | 说明 | 对应模块 |
+|------|------|----------|
+| `core` | 核心服务 | iam-core-service |
+| `auth` | 认证服务 | iam-auth-service |
+| `system` | 系统服务 | iam-system-service |
+| `audit` | 审计服务 | iam-audit-service |
+| `gateway` | 网关服务 | iam-gateway |
+| `common` | 公共模块 | iam-common |
+| `config` | 配置相关 | config-init |
+| `docs` | 文档 | docs |
+| `deps` | 依赖管理 | iam-dependencies |
+
+### 4. 提交示例
+```bash
+# 功能开发
+feat(auth): add JWT token refresh mechanism
+
+Implement automatic token refresh when access token is about to expire.
+This improves user experience by reducing login interruptions.
+
+Closes #45
+
+# Bug修复
+fix(core): resolve user creation validation issue
+
+When email validation is enabled, user creation would fail.
+Fixed validation logic to properly handle edge cases.
+
+Fixes #23
+
+# 文档更新
+docs: update API documentation for user management
+
+Add detailed examples and error codes for all user-related endpoints.
+
+# 重构
+refactor(auth): simplify authentication flow
+
+Extract common authentication logic into reusable components.
+No functional changes, purely structural improvements.
+```
+
+## Git分支策略
+
+### 1. 分支命名规范
+```
+master/main     # 主分支，生产环境代码
+develop         # 开发分支，集成最新功能
+feature/*       # 功能分支
+hotfix/*        # 热修复分支
+release/*       # 发布分支
+```
+
+### 2. 功能分支
+```bash
+# 创建功能分支
+git checkout -b feature/user-management
+git checkout -b feature/oauth2-integration
+git checkout -b feature/audit-logging
+
+# 合并到develop分支
+git checkout develop
+git merge --no-ff feature/user-management
+git branch -d feature/user-management
+```
+
+### 3. 热修复分支
+```bash
+# 从master创建热修复分支
+git checkout master
+git checkout -b hotfix/security-vulnerability
+
+# 修复完成后合并到master和develop
+git checkout master
+git merge --no-ff hotfix/security-vulnerability
+git checkout develop
+git merge --no-ff hotfix/security-vulnerability
+git branch -d hotfix/security-vulnerability
+```
+
+## 提交工具使用
+
+### 1. 使用交互式提交脚本
+```bash
+# 使用项目提供的提交脚本
+./scripts/commit.sh
+
+# 脚本会引导你选择：
+# - 提交类型
+# - 影响范围
+# - 简短描述
+# - 详细描述（可选）
+# - 关闭的Issue（可选）
+```
+
+### 2. 使用Git模板
+```bash
+# Git会自动加载提交模板
+git commit
+
+# 模板内容会显示在编辑器中，指导你填写提交信息
+```
+
+### 3. Commitlint验证
+项目配置了commitlint，会自动验证提交信息格式：
+
+```bash
+# 正确的提交会通过验证
+git commit -m "feat(auth): add OAuth2 login support"
+✅ 提交成功
+
+# 错误的提交会被拒绝
+git commit -m "add new feature"
+❌ 提交失败：不符合约定式提交规范
+```
+
+## 代码审查流程
+
+### 1. Pull Request创建
+```markdown
+## 变更类型
+- [ ] 新功能
+- [ ] Bug修复
+- [ ] 性能优化
+- [ ] 重构
+- [ ] 文档更新
+
+## 变更描述
+简要描述本次变更的内容和目的
+
+## 测试情况
+- [ ] 单元测试已通过
+- [ ] 集成测试已通过
+- [ ] 手动测试已完成
+
+## 影响范围
+描述本次变更可能影响的功能模块
+
+## 检查清单
+- [ ] 代码遵循项目规范
+- [ ] 已添加必要的测试
+- [ ] 文档已更新
+- [ ] 无冲突需要解决
+```
+
+### 2. 代码审查要点
+- 代码质量和规范性
+- 业务逻辑正确性
+- 安全性考虑
+- 性能影响
+- 测试覆盖率
+- 文档完整性
+
+## 版本发布
+
+### 1. 版本号规范
+遵循[语义化版本](https://semver.org/)规范：
+
+```
+MAJOR.MINOR.PATCH
+
+例如：1.2.3
+- MAJOR：不兼容的API修改
+- MINOR：向下兼容的功能性新增
+- PATCH：向下兼容的问题修正
+```
+
+### 2. 发布流程
+```bash
+# 1. 创建发布分支
+git checkout develop
+git checkout -b release/1.2.0
+
+# 2. 更新版本号和变更日志
+# 更新pom.xml中的版本号
+# 更新CHANGELOG.md
+
+# 3. 合并到master
+git checkout master
+git merge --no-ff release/1.2.0
+
+# 4. 创建标签
+git tag -a v1.2.0 -m "Release version 1.2.0"
+
+# 5. 合并回develop
+git checkout develop
+git merge --no-ff release/1.2.0
+
+# 6. 删除发布分支
+git branch -d release/1.2.0
+
+# 7. 推送到远程仓库
+git push origin master
+git push origin develop
+git push origin v1.2.0
+```
+
+## 最佳实践
+
+### 1. 提交频率
+- 每完成一个功能点就提交
+- 提交粒度要合适，避免过大或过小
+- 每天至少提交一次代码
+
+### 2. 提交质量
+- 每次提交都要保证代码可以编译通过
+- 提交前运行测试确保功能正常
+- 提交信息要清晰描述变更内容
+
+### 3. 分支管理
+- 及时清理已合并的分支
+- 定期同步远程分支
+- 避免长期存在的功能分支
+
+### 4. 冲突解决
+```bash
+# 拉取最新代码
+git fetch origin
+
+# 变基解决冲突
+git rebase origin/develop
+
+# 解决冲突后继续变基
+git add .
+git rebase --continue
+
+# 强制推送（仅对功能分支）
+git push --force-with-lease origin feature/my-feature
+```

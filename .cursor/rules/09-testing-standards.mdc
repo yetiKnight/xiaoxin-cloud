@@ -1,0 +1,440 @@
+---
+globs: **/test/**/*.java,**/*Test.java,**/*Tests.java
+---
+
+# 测试开发规范
+
+## 测试策略
+
+### 1. 测试金字塔
+- **单元测试**: 70% - 测试单个类或方法
+- **集成测试**: 20% - 测试模块间交互
+- **端到端测试**: 10% - 测试完整业务流程
+
+### 2. 测试覆盖率要求
+- 单元测试覆盖率 > 80%
+- 集成测试覆盖率 > 70%
+- 核心业务逻辑覆盖率 > 90%
+
+## 单元测试规范
+
+### 1. 测试类命名
+```java
+// 测试类命名：{被测试类名}Test
+public class UserServiceTest {
+    // 测试方法命名：test{方法名}_{场景}_{期望结果}
+    @Test
+    void testCreateUser_WithValidData_ShouldReturnUser() {}
+    
+    @Test
+    void testCreateUser_WithDuplicateUsername_ShouldThrowException() {}
+}
+```
+
+### 2. Service层单元测试
+```java
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+    
+    @Mock
+    private UserMapper userMapper;
+    
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    
+    @InjectMocks
+    private UserServiceImpl userService;
+    
+    @Test
+    @DisplayName("创建用户 - 正常情况")
+    void testCreateUser_WithValidData_ShouldReturnUser() {
+        // Given
+        UserCreateDTO dto = UserCreateDTO.builder()
+                .username("testuser")
+                .password("password123")
+                .email("test@example.com")
+                .build();
+        
+        User savedUser = User.builder()
+                .id(1L)
+                .username("testuser")
+                .email("test@example.com")
+                .build();
+        
+        when(userMapper.findByUsername("testuser")).thenReturn(null);
+        when(passwordEncoder.encode("password123")).thenReturn("encoded_password");
+        when(userMapper.insert(any(User.class))).thenReturn(1);
+        
+        // When
+        UserVO result = userService.createUser(dto);
+        
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getUsername()).isEqualTo("testuser");
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        
+        verify(userMapper).findByUsername("testuser");
+        verify(passwordEncoder).encode("password123");
+        verify(userMapper).insert(any(User.class));
+    }
+    
+    @Test
+    @DisplayName("创建用户 - 用户名已存在")
+    void testCreateUser_WithDuplicateUsername_ShouldThrowException() {
+        // Given
+        UserCreateDTO dto = UserCreateDTO.builder()
+                .username("existing_user")
+                .password("password123")
+                .build();
+        
+        User existingUser = User.builder()
+                .id(1L)
+                .username("existing_user")
+                .build();
+        
+        when(userMapper.findByUsername("existing_user")).thenReturn(existingUser);
+        
+        // When & Then
+        BusinessException exception = assertThrows(BusinessException.class, 
+                () -> userService.createUser(dto));
+        
+        assertThat(exception.getResultCode()).isEqualTo(ResultCode.USER_ALREADY_EXISTS);
+        
+        verify(userMapper).findByUsername("existing_user");
+        verify(userMapper, never()).insert(any(User.class));
+    }
+}
+```
+
+### 3. Controller层单元测试
+```java
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private UserService userService;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Test
+    @DisplayName("获取用户列表 - 成功")
+    void testGetUserList_ShouldReturnUserList() throws Exception {
+        // Given
+        List<UserVO> users = Arrays.asList(
+                UserVO.builder().id(1L).username("user1").build(),
+                UserVO.builder().id(2L).username("user2").build()
+        );
+        
+        IPage<UserVO> page = new Page<>(1, 10, 2);
+        page.setRecords(users);
+        
+        when(userService.getUserPage(any(UserQueryDTO.class), eq(1L), eq(10L)))
+                .thenReturn(page);
+        
+        // When & Then
+        mockMvc.perform(get("/api/v1/users")
+                        .param("current", "1")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.records").isArray())
+                .andExpect(jsonPath("$.data.records", hasSize(2)))
+                .andExpect(jsonPath("$.data.records[0].username").value("user1"))
+                .andDo(print());
+        
+        verify(userService).getUserPage(any(UserQueryDTO.class), eq(1L), eq(10L));
+    }
+    
+    @Test
+    @DisplayName("创建用户 - 参数验证失败")
+    void testCreateUser_WithInvalidData_ShouldReturnBadRequest() throws Exception {
+        // Given
+        UserCreateDTO dto = UserCreateDTO.builder()
+                .username("") // 空用户名，触发验证失败
+                .password("123") // 密码太短
+                .email("invalid_email") // 邮箱格式错误
+                .build();
+        
+        // When & Then
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
+                .andDo(print());
+        
+        verify(userService, never()).createUser(any(UserCreateDTO.class));
+    }
+}
+```
+
+## 集成测试规范
+
+### 1. 数据库集成测试
+```java
+@SpringBootTest
+@Transactional
+@Rollback
+class UserServiceIntegrationTest {
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserMapper userMapper;
+    
+    @Test
+    @DisplayName("用户创建集成测试")
+    void testCreateUserIntegration() {
+        // Given
+        UserCreateDTO dto = UserCreateDTO.builder()
+                .username("integration_test_user")
+                .password("password123")
+                .email("integration@test.com")
+                .deptId(1L)
+                .build();
+        
+        // When
+        UserVO result = userService.createUser(dto);
+        
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isNotNull();
+        
+        // 验证数据库中的数据
+        User savedUser = userMapper.selectById(result.getId());
+        assertThat(savedUser).isNotNull();
+        assertThat(savedUser.getUsername()).isEqualTo("integration_test_user");
+        assertThat(savedUser.getEmail()).isEqualTo("integration@test.com");
+    }
+}
+```
+
+### 2. Web集成测试
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class UserControllerIntegrationTest {
+    
+    @Autowired
+    private TestRestTemplate restTemplate;
+    
+    @LocalServerPort
+    private int port;
+    
+    @Test
+    @DisplayName("用户CRUD完整流程测试")
+    void testUserCrudFlow() {
+        String baseUrl = "http://localhost:" + port + "/api/v1/users";
+        
+        // 1. 创建用户
+        UserCreateDTO createDto = UserCreateDTO.builder()
+                .username("crud_test_user")
+                .password("password123")
+                .email("crud@test.com")
+                .deptId(1L)
+                .build();
+        
+        ResponseEntity<Result> createResponse = restTemplate.postForEntity(
+                baseUrl, createDto, Result.class);
+        
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(createResponse.getBody().getCode()).isEqualTo(200);
+        
+        // 2. 查询用户
+        ResponseEntity<Result> getResponse = restTemplate.getForEntity(
+                baseUrl + "/1", Result.class);
+        
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        
+        // 3. 更新用户
+        UserUpdateDTO updateDto = UserUpdateDTO.builder()
+                .id(1L)
+                .email("updated@test.com")
+                .build();
+        
+        restTemplate.put(baseUrl + "/1", updateDto);
+        
+        // 4. 删除用户
+        restTemplate.delete(baseUrl + "/1");
+    }
+}
+```
+
+## TestContainers使用
+
+### 1. 数据库容器测试
+```java
+@SpringBootTest
+@Testcontainers
+class DatabaseIntegrationTest {
+    
+    @Container
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("iam_test")
+            .withUsername("test")
+            .withPassword("test");
+    
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+    }
+    
+    @Test
+    void testDatabaseConnection() {
+        assertTrue(mysql.isRunning());
+    }
+}
+```
+
+### 2. Redis容器测试
+```java
+@SpringBootTest
+@Testcontainers
+class RedisIntegrationTest {
+    
+    @Container
+    static GenericContainer<?> redis = new GenericContainer<>("redis:6.0-alpine")
+            .withExposedPorts(6379);
+    
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.redis.host", redis::getHost);
+        registry.add("spring.redis.port", redis::getFirstMappedPort);
+    }
+    
+    @Test
+    void testRedisConnection() {
+        assertTrue(redis.isRunning());
+    }
+}
+```
+
+## 性能测试
+
+### 1. JMH基准测试
+```java
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@State(Scope.Benchmark)
+public class UserServiceBenchmark {
+    
+    private UserService userService;
+    
+    @Setup
+    public void setup() {
+        // 初始化测试环境
+    }
+    
+    @Benchmark
+    public UserVO testGetUserById() {
+        return userService.getUserById(1L);
+    }
+    
+    @Benchmark
+    public void testCreateUser() {
+        UserCreateDTO dto = UserCreateDTO.builder()
+                .username("benchmark_user_" + System.nanoTime())
+                .password("password123")
+                .build();
+        userService.createUser(dto);
+    }
+}
+```
+
+### 2. 并发测试
+```java
+@Test
+@DisplayName("并发创建用户测试")
+void testConcurrentUserCreation() throws InterruptedException {
+    int threadCount = 10;
+    CountDownLatch latch = new CountDownLatch(threadCount);
+    AtomicInteger successCount = new AtomicInteger(0);
+    AtomicInteger failureCount = new AtomicInteger(0);
+    
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    
+    for (int i = 0; i < threadCount; i++) {
+        final int index = i;
+        executor.submit(() -> {
+            try {
+                UserCreateDTO dto = UserCreateDTO.builder()
+                        .username("concurrent_user_" + index)
+                        .password("password123")
+                        .email("concurrent" + index + "@test.com")
+                        .build();
+                
+                userService.createUser(dto);
+                successCount.incrementAndGet();
+            } catch (Exception e) {
+                failureCount.incrementAndGet();
+            } finally {
+                latch.countDown();
+            }
+        });
+    }
+    
+    latch.await(30, TimeUnit.SECONDS);
+    executor.shutdown();
+    
+    assertThat(successCount.get()).isEqualTo(threadCount);
+    assertThat(failureCount.get()).isEqualTo(0);
+}
+```
+
+## 测试数据管理
+
+### 1. 测试数据构建器
+```java
+public class UserTestDataBuilder {
+    
+    public static UserCreateDTO.UserCreateDTOBuilder defaultCreateDto() {
+        return UserCreateDTO.builder()
+                .username("test_user")
+                .password("password123")
+                .email("test@example.com")
+                .phone("13800138000")
+                .deptId(1L);
+    }
+    
+    public static User.UserBuilder defaultUser() {
+        return User.builder()
+                .id(1L)
+                .username("test_user")
+                .email("test@example.com")
+                .phone("13800138000")
+                .status(UserStatus.ENABLED)
+                .createTime(LocalDateTime.now());
+    }
+}
+```
+
+### 2. 测试配置
+```yaml
+# test/resources/application-test.yml
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+logging:
+  level:
+    com.xiaoxin.iam: DEBUG
+    org.springframework.web: DEBUG
+```

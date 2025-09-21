@@ -1,0 +1,454 @@
+---
+globs: **/security/**/*.java,**/auth/**/*.java,**/config/**/*Security*.java
+---
+
+# 安全开发规范
+
+## 认证授权架构
+
+### 1. OAuth2.1 + JWT认证
+```java
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/public/**").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .build();
+    }
+}
+```
+
+### 2. JWT Token管理
+```java
+@Component
+public class JwtTokenProvider {
+    
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
+    
+    @Value("${app.jwt.expiration}")
+    private long jwtExpiration;
+    
+    public String generateToken(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Date expiryDate = new Date(System.currentTimeMillis() + jwtExpiration);
+        
+        return Jwts.builder()
+                .setSubject(userPrincipal.getId().toString())
+                .setIssuedAt(new Date())
+                .setExpiration(expiryDate)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
+    
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("JWT token validation error: {}", e.getMessage());
+            return false;
+        }
+    }
+}
+```
+
+## 权限控制模型
+
+### 1. RBAC权限模型
+```java
+// 用户-角色-权限关系
+@Entity
+@Table(name = "sys_user_role")
+public class UserRole {
+    private Long userId;
+    private Long roleId;
+}
+
+@Entity  
+@Table(name = "sys_role_permission")
+public class RolePermission {
+    private Long roleId;
+    private Long permissionId;
+}
+```
+
+### 2. 方法级权限控制
+```java
+@Service
+public class UserService {
+    
+    @PreAuthorize("hasAuthority('user:create')")
+    public void createUser(UserCreateDTO dto) {
+        // 创建用户逻辑
+    }
+    
+    @PreAuthorize("hasAuthority('user:update') and #dto.id == authentication.principal.id")
+    public void updateUser(UserUpdateDTO dto) {
+        // 用户只能更新自己的信息
+    }
+    
+    @PostAuthorize("hasAuthority('user:read') or returnObject.id == authentication.principal.id")
+    public UserVO getUserById(Long id) {
+        // 用户可以查看自己的信息或有查看权限
+        return userMapper.selectUserById(id);
+    }
+}
+```
+
+### 3. 数据权限控制
+```java
+@Component
+public class DataPermissionInterceptor implements Interceptor {
+    
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        // 获取当前用户的数据权限范围
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal user = (UserPrincipal) auth.getPrincipal();
+        
+        // 根据用户的数据权限修改SQL
+        if (user.getDataScope() == DataScope.DEPT_ONLY) {
+            // 只能查看本部门数据
+            addDeptFilter(invocation, user.getDeptId());
+        } else if (user.getDataScope() == DataScope.SELF_ONLY) {
+            // 只能查看自己的数据
+            addUserFilter(invocation, user.getId());
+        }
+        
+        return invocation.proceed();
+    }
+}
+```
+
+## 密码安全
+
+### 1. 密码编码
+```java
+@Configuration
+public class PasswordConfig {
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
+    }
+    
+    @Bean
+    public PasswordPolicy passwordPolicy() {
+        return PasswordPolicy.builder()
+                .minLength(8)
+                .maxLength(128)
+                .requireUppercase(true)
+                .requireLowercase(true)
+                .requireDigits(true)
+                .requireSpecialChars(true)
+                .build();
+    }
+}
+```
+
+### 2. 密码强度校验
+```java
+@Component
+public class PasswordValidator {
+    
+    public void validatePassword(String password) {
+        if (password.length() < 8) {
+            throw new BusinessException(ResultCode.PASSWORD_TOO_SHORT);
+        }
+        
+        if (!password.matches(".*[A-Z].*")) {
+            throw new BusinessException(ResultCode.PASSWORD_REQUIRE_UPPERCASE);
+        }
+        
+        if (!password.matches(".*[a-z].*")) {
+            throw new BusinessException(ResultCode.PASSWORD_REQUIRE_LOWERCASE);
+        }
+        
+        if (!password.matches(".*\\d.*")) {
+            throw new BusinessException(ResultCode.PASSWORD_REQUIRE_DIGIT);
+        }
+        
+        if (!password.matches(".*[!@#$%^&*()].*")) {
+            throw new BusinessException(ResultCode.PASSWORD_REQUIRE_SPECIAL);
+        }
+    }
+}
+```
+
+## 数据加密与脱敏
+
+### 1. 敏感数据加密
+```java
+@Component
+public class DataEncryption {
+    
+    @Value("${app.encryption.key}")
+    private String encryptionKey;
+    
+    public String encrypt(String plainText) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            SecretKeySpec keySpec = new SecretKeySpec(encryptionKey.getBytes(), "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            byte[] encrypted = cipher.doFinal(plainText.getBytes());
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (Exception e) {
+            throw new BusinessException(ResultCode.ENCRYPTION_ERROR);
+        }
+    }
+    
+    public String decrypt(String encryptedText) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            SecretKeySpec keySpec = new SecretKeySpec(encryptionKey.getBytes(), "AES");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
+            byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+            return new String(decrypted);
+        } catch (Exception e) {
+            throw new BusinessException(ResultCode.DECRYPTION_ERROR);
+        }
+    }
+}
+```
+
+### 2. 数据脱敏
+```java
+@JsonSerialize(using = SensitiveDataSerializer.class)
+public class SensitiveDataSerializer extends JsonSerializer<String> {
+    
+    @Override
+    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) 
+            throws IOException {
+        if (StringUtils.isBlank(value)) {
+            gen.writeString(value);
+            return;
+        }
+        
+        SensitiveData sensitiveData = getAnnotation(gen);
+        if (sensitiveData == null) {
+            gen.writeString(value);
+            return;
+        }
+        
+        String maskedValue = maskData(value, sensitiveData.type());
+        gen.writeString(maskedValue);
+    }
+    
+    private String maskData(String value, SensitiveType type) {
+        switch (type) {
+            case MOBILE_PHONE:
+                return value.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2");
+            case EMAIL:
+                return value.replaceAll("(\\w{1,3})\\w+(@\\w+\\.\\w+)", "$1***$2");
+            case ID_CARD:
+                return value.replaceAll("(\\d{4})\\d{10}(\\d{4})", "$1**********$2");
+            default:
+                return "***";
+        }
+    }
+}
+```
+
+## 访问控制
+
+### 1. IP白名单
+```java
+@Component
+public class IpWhitelistFilter implements Filter {
+    
+    @Value("${app.security.ip-whitelist}")
+    private List<String> ipWhitelist;
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, 
+                        FilterChain chain) throws IOException, ServletException {
+        
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String clientIp = getClientIpAddress(httpRequest);
+        
+        if (!isIpAllowed(clientIp)) {
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setStatus(HttpStatus.FORBIDDEN.value());
+            return;
+        }
+        
+        chain.doFilter(request, response);
+    }
+    
+    private boolean isIpAllowed(String ip) {
+        return ipWhitelist.contains(ip) || ipWhitelist.contains("0.0.0.0/0");
+    }
+}
+```
+
+### 2. 频率限制
+```java
+@Component
+public class RateLimitFilter implements Filter {
+    
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, 
+                        FilterChain chain) throws IOException, ServletException {
+        
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String clientIp = getClientIpAddress(httpRequest);
+        String key = "rate_limit:" + clientIp;
+        
+        String count = (String) redisTemplate.opsForValue().get(key);
+        if (count == null) {
+            redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(1));
+        } else if (Integer.parseInt(count) >= 100) {
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setStatus(429); // Too Many Requests
+            return;
+        } else {
+            redisTemplate.opsForValue().increment(key);
+        }
+        
+        chain.doFilter(request, response);
+    }
+}
+```
+
+## 审计日志
+
+### 1. 操作日志记录
+```java
+@Aspect
+@Component
+@Slf4j
+public class AuditLogAspect {
+    
+    @Autowired
+    private AuditLogService auditLogService;
+    
+    @Around("@annotation(auditLog)")
+    public Object around(ProceedingJoinPoint point, AuditLog auditLog) throws Throwable {
+        AuditLogRecord record = new AuditLogRecord();
+        record.setOperation(auditLog.operation());
+        record.setModule(auditLog.module());
+        record.setStartTime(LocalDateTime.now());
+        
+        try {
+            Object result = point.proceed();
+            record.setStatus(AuditStatus.SUCCESS);
+            record.setResult("操作成功");
+            return result;
+        } catch (Exception e) {
+            record.setStatus(AuditStatus.FAILED);
+            record.setResult(e.getMessage());
+            throw e;
+        } finally {
+            record.setEndTime(LocalDateTime.now());
+            auditLogService.saveAuditLog(record);
+        }
+    }
+}
+```
+
+### 2. 登录日志
+```java
+@EventListener
+public class LoginEventListener {
+    
+    @Autowired
+    private LoginLogService loginLogService;
+    
+    @EventListener
+    public void handleLoginSuccess(AuthenticationSuccessEvent event) {
+        UserPrincipal user = (UserPrincipal) event.getAuthentication().getPrincipal();
+        LoginLog loginLog = LoginLog.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .loginTime(LocalDateTime.now())
+                .status(LoginStatus.SUCCESS)
+                .ipAddress(getClientIpAddress())
+                .userAgent(getUserAgent())
+                .build();
+        loginLogService.saveLoginLog(loginLog);
+    }
+    
+    @EventListener
+    public void handleLoginFailure(AbstractAuthenticationFailureEvent event) {
+        LoginLog loginLog = LoginLog.builder()
+                .username(event.getAuthentication().getName())
+                .loginTime(LocalDateTime.now())
+                .status(LoginStatus.FAILED)
+                .failureReason(event.getException().getMessage())
+                .ipAddress(getClientIpAddress())
+                .userAgent(getUserAgent())
+                .build();
+        loginLogService.saveLoginLog(loginLog);
+    }
+}
+```
+
+## 安全配置
+
+### 1. HTTPS配置
+```yaml
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: password
+    key-store-type: PKCS12
+    key-alias: xiaoxin-iam
+```
+
+### 2. 安全头配置
+```java
+@Configuration
+public class SecurityHeadersConfig {
+    
+    @Bean
+    public FilterRegistrationBean<SecurityHeadersFilter> securityHeadersFilter() {
+        FilterRegistrationBean<SecurityHeadersFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new SecurityHeadersFilter());
+        registration.addUrlPatterns("/*");
+        return registration;
+    }
+}
+
+public class SecurityHeadersFilter implements Filter {
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, 
+                        FilterChain chain) throws IOException, ServletException {
+        
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        
+        // 防止点击劫持
+        httpResponse.setHeader("X-Frame-Options", "DENY");
+        
+        // 防止MIME类型嗅探
+        httpResponse.setHeader("X-Content-Type-Options", "nosniff");
+        
+        // XSS保护
+        httpResponse.setHeader("X-XSS-Protection", "1; mode=block");
+        
+        // 严格传输安全
+        httpResponse.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+        
+        // 内容安全策略
+        httpResponse.setHeader("Content-Security-Policy", "default-src 'self'");
+        
+        chain.doFilter(request, response);
+    }
+}
+```

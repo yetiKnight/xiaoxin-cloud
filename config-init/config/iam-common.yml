@@ -16,9 +16,31 @@ spring:
           - data-id: iam-common.yml
             group: DEFAULT_GROUP
             refresh: true
-
-# 数据源配置
-spring:
+    # Sentinel配置
+    sentinel:
+      transport:
+        dashboard: localhost:8080
+      datasource:
+        ds1:
+          nacos:
+            server-addr: localhost:8848
+            dataId: sentinel-flow-rules
+            groupId: SENTINEL_GROUP
+            rule-type: flow
+    # RocketMQ配置
+    stream:
+      rocketmq:
+        binder:
+          name-server: localhost:9876
+        bindings:
+          output:
+            producer:
+              group: iam-platform-producer-group
+          input:
+            consumer:
+              group: iam-platform-consumer-group
+  
+  # 数据源配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
@@ -49,8 +71,7 @@ spring:
           config:
             multi-statement-allow: true
 
-# Redis配置
-spring:
+  # Redis配置
   redis:
     host: localhost
     port: 6379
@@ -79,17 +100,6 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# Sentinel配置
-spring.cloud.sentinel:
-  transport:
-    dashboard: localhost:8080
-  datasource:
-    ds1:
-      nacos:
-        server-addr: localhost:8848
-        dataId: sentinel-flow-rules
-        groupId: SENTINEL_GROUP
-        rule-type: flow
 
 # Seata配置
 seata:
@@ -118,18 +128,6 @@ seata:
       namespace: public
       group: SEATA_GROUP
 
-# RocketMQ配置
-spring.cloud.stream:
-  rocketmq:
-    binder:
-      name-server: localhost:9876
-    bindings:
-      output:
-        producer:
-          group: iam-platform-producer-group
-      input:
-        consumer:
-          group: iam-platform-consumer-group
 
 # 日志配置
 logging:

@@ -16,15 +16,21 @@
 
 package com.xiaoxin.iam.starter.autoconfigure;
 
+import com.xiaoxin.iam.starter.aspect.OperationLogAspect;
+import com.xiaoxin.iam.starter.aspect.PerformanceMonitorAspect;
+import com.xiaoxin.iam.starter.config.IamCoreProperties;
 import com.xiaoxin.iam.starter.config.IamProperties;
+import com.xiaoxin.iam.starter.config.TaskExecutorConfig;
 import com.xiaoxin.iam.starter.web.GlobalExceptionHandler;
 import com.xiaoxin.iam.starter.web.IamResponseBodyAdvice;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * IAM平台自动配置
@@ -34,7 +40,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(IamProperties.class)
-@EnableConfigurationProperties(IamProperties.class)
+@EnableConfigurationProperties({IamProperties.class, IamCoreProperties.class})
+@Import(TaskExecutorConfig.class)
 public class IamAutoConfiguration {
 
     /**
@@ -55,6 +62,26 @@ public class IamAutoConfiguration {
     @ConditionalOnMissingBean
     public IamResponseBodyAdvice responseBodyAdvice() {
         return new IamResponseBodyAdvice();
+    }
+
+    /**
+     * 操作日志切面
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "iam.core", name = "enable-operation-log", havingValue = "true", matchIfMissing = true)
+    public OperationLogAspect operationLogAspect() {
+        return new OperationLogAspect();
+    }
+
+    /**
+     * 性能监控切面
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "iam.core", name = "enable-performance-monitor", havingValue = "true", matchIfMissing = true)
+    public PerformanceMonitorAspect performanceMonitorAspect() {
+        return new PerformanceMonitorAspect();
     }
 
 }

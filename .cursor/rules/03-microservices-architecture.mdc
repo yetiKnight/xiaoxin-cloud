@@ -1,0 +1,117 @@
+---
+globs: **/services/**/*.java,**/gateway/**/*.java
+---
+
+# 微服务架构开发规范
+
+## 微服务划分原则
+按业务领域进行服务拆分，确保服务间松耦合、高内聚。
+
+## 服务列表与职责
+
+### iam-gateway (8080)
+- **职责**: API网关，统一入口
+- **功能**: 路由转发、限流熔断、安全认证
+- **技术**: Spring Cloud Gateway + Sentinel
+
+### iam-auth-service (8081) 
+- **职责**: 认证授权服务
+- **功能**: OAuth2.1认证、JWT Token管理、单点登录
+- **数据库**: iam_auth
+
+### iam-core-service (8082)
+- **职责**: 核心业务服务  
+- **功能**: 用户管理、权限管理、组织架构管理
+- **数据库**: iam_core
+
+### iam-audit-service (8083)
+- **职责**: 审计服务
+- **功能**: 操作日志、登录日志、审计报表
+- **数据库**: iam_audit
+
+### iam-system-service (8084)
+- **职责**: 系统服务
+- **功能**: 配置管理、通知管理、系统监控
+- **数据库**: iam_system
+
+## 服务间通信规范
+
+### 1. 同步调用 - OpenFeign
+```java
+@FeignClient(name = "iam-core-service", path = "/api/v1/users")
+public interface UserServiceClient {
+    @GetMapping("/{userId}")
+    Result<UserDTO> getUserById(@PathVariable Long userId);
+}
+```
+
+### 2. 异步通信 - RocketMQ
+```java
+@RocketMQMessageListener(
+    topic = "user-topic",
+    consumerGroup = "audit-consumer-group"
+)
+public class UserEventListener implements RocketMQListener<UserEvent> {
+    @Override
+    public void onMessage(UserEvent event) {
+        // 处理用户事件
+    }
+}
+```
+
+## 服务配置规范
+
+### 1. Nacos配置
+- 配置文件格式: `{service-name}-{profile}.yml`
+- 配置分组: DEFAULT_GROUP
+- 配置命名空间: 按环境隔离
+
+### 2. 服务注册
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev
+        group: IAM_GROUP
+```
+
+## 分布式事务处理
+使用Seata实现分布式事务：
+
+```java
+@GlobalTransactional(rollbackFor = Exception.class)
+public void createUserWithRole(UserDTO user, Long roleId) {
+    userService.createUser(user);
+    roleService.assignRole(user.getId(), roleId);
+}
+```
+
+## 熔断降级策略
+使用Sentinel进行熔断降级：
+
+```java
+@SentinelResource(
+    value = "getUserById",
+    fallback = "getUserByIdFallback",
+    blockHandler = "getUserByIdBlockHandler"
+)
+public Result<UserDTO> getUserById(Long userId) {
+    return userServiceClient.getUserById(userId);
+}
+```
+
+## 链路追踪
+集成Jaeger进行链路追踪，每个请求携带TraceId。
+
+## 服务监控
+- 健康检查端点: `/actuator/health`
+- 指标暴露: `/actuator/prometheus`
+- 日志统一格式: JSON格式输出
+
+## 服务安全
+- 服务间调用携带认证Token
+- 使用HTTPS加密传输
+- 接口权限验证
+- 敏感数据脱敏

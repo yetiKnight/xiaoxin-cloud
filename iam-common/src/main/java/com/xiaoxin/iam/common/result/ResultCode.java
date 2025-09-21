@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 xiaoxin. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.xiaoxin.iam.common.result;
 
 import lombok.AllArgsConstructor;
@@ -5,6 +21,7 @@ import lombok.Getter;
 
 /**
  * 响应码枚举
+ * 包含基础HTTP状态码和业务相关错误码
  *
  * @author xiaoxin
  * @since 1.0.0
@@ -62,6 +79,46 @@ public enum ResultCode implements IResult {
      * 服务不可用
      */
     SERVICE_UNAVAILABLE(503, "服务不可用"),
+
+    /**
+     * 网关超时
+     */
+    GATEWAY_TIMEOUT(504, "网关超时"),
+
+    /**
+     * HTTP版本不支持
+     */
+    HTTP_VERSION_NOT_SUPPORTED(505, "HTTP版本不支持"),
+
+    /**
+     * 变体也协商
+     */
+    VARIANT_ALSO_NEGOTIATES(506, "变体也协商"),
+
+    /**
+     * 存储空间不足
+     */
+    INSUFFICIENT_STORAGE(507, "存储空间不足"),
+
+    /**
+     * 循环检测
+     */
+    LOOP_DETECTED(508, "循环检测"),
+
+    /**
+     * 带宽限制
+     */
+    BANDWIDTH_LIMIT_EXCEEDED(509, "带宽限制"),
+
+    /**
+     * 未扩展
+     */
+    NOT_EXTENDED(510, "未扩展"),
+
+    /**
+     * 网络认证要求
+     */
+    NETWORK_AUTHENTICATION_REQUIRED(511, "网络认证要求"),
 
     /**
      * 业务异常
@@ -216,4 +273,68 @@ public enum ResultCode implements IResult {
      * 响应消息
      */
     private final String message;
+
+    /**
+     * 根据错误码获取枚举
+     */
+    public static ResultCode getByCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        for (ResultCode resultCode : values()) {
+            if (resultCode.getCode().equals(code)) {
+                return resultCode;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 判断是否为成功状态码
+     */
+    public boolean isSuccess() {
+        return SUCCESS.getCode().equals(this.code);
+    }
+
+    /**
+     * 判断是否为失败状态码
+     */
+    public boolean isFailed() {
+        return !isSuccess();
+    }
+
+    /**
+     * 判断是否为客户端错误（4xx）
+     */
+    public boolean isClientError() {
+        return code >= 400 && code < 500;
+    }
+
+    /**
+     * 判断是否为服务器错误（5xx）
+     */
+    public boolean isServerError() {
+        return code >= 500 && code < 600;
+    }
+
+    /**
+     * 判断是否为重定向（3xx）
+     */
+    public boolean isRedirect() {
+        return code >= 300 && code < 400;
+    }
+
+    /**
+     * 判断是否为信息响应（1xx）
+     */
+    public boolean isInformational() {
+        return code >= 100 && code < 200;
+    }
+
+    /**
+     * 判断是否为成功响应（2xx）
+     */
+    public boolean isSuccessful() {
+        return code >= 200 && code < 300;
+    }
 }
