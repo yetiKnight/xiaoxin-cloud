@@ -1,21 +1,25 @@
-# IAM审计服务开发环境配置
+spring:
+  cloud:
+    nacos:
+      config:
+        shared-configs:
+          - data-id: iam-platform-dev.yml
+            group: IAM_GROUP
+            refresh: true
+          - data-id: iam-infrastructure-dev.yml
+            group: IAM_GROUP
+            refresh: true
 
-# 数据库配置
 db:
   driver-class-name: com.mysql.cj.jdbc.Driver
   url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_audit?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
   username: iam_audit
   password: kT9!Wz2@Q
 
-# Redis配置
 redis:
-  host: localhost
-  port: 6379
-  password: eW7$zR2p#9qL!5v@1sKx8nP6dYf*4gHj
   database:
     audit: 3
 
-# MongoDB配置
 mongodb:
   host: localhost
   port: 27017
@@ -23,7 +27,6 @@ mongodb:
   username: 
   password: 
 
-# Elasticsearch配置
 elasticsearch:
   enabled: true
   host: localhost
@@ -32,18 +35,14 @@ elasticsearch:
   password: 
   index-prefix: iam-audit
   
-# 审计配置
 audit:
-  # 操作日志配置
   operation-log:
     enabled: true
-    storage: mysql  # mysql, mongodb, elasticsearch
+    storage: mysql
     retention-days: 90
     async: true
     batch-size: 100
     flush-interval-seconds: 30
-  
-  # 登录日志配置
   login-log:
     enabled: true
     storage: mysql
@@ -51,8 +50,6 @@ audit:
     record-success: true
     record-failure: true
     async: true
-  
-  # 数据变更日志配置
   data-change-log:
     enabled: true
     storage: mongodb
@@ -63,8 +60,6 @@ audit:
       - sys_permission
       - sys_dept
     async: true
-  
-  # 系统异常日志配置
   exception-log:
     enabled: true
     storage: elasticsearch
@@ -72,30 +67,24 @@ audit:
     include-stack-trace: true
     async: true
 
-# 日志分析配置
 log-analysis:
   enabled: true
-  # 异常检测
   anomaly-detection:
     enabled: true
     check-interval-minutes: 30
     threshold:
       login-failure-rate: 0.1
       operation-error-rate: 0.05
-  
-  # 统计报表
   statistics:
     enabled: true
     generate-interval-hours: 24
     retention-days: 365
 
-# 数据清理配置
 data-cleanup:
   enabled: true
-  schedule: "0 0 2 * * ?"  # 每天凌晨2点执行
+  schedule: "0 0 2 * * ?"
   batch-size: 1000
   
-# RocketMQ消息消费配置
 rocketmq:
   name-server: localhost:9876
   consumer:

@@ -1,0 +1,62 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev
+        group: IAM_GROUP
+      config:
+        server-addr: localhost:8848
+        namespace: dev
+        group: IAM_GROUP
+        file-extension: yml
+        refresh-enabled: true
+
+    sentinel:
+      transport:
+        dashboard: localhost:8181
+      eager: true
+
+logging:
+  level:
+    com.xiaoxin.iam: info
+    org.springframework.cloud: info
+    org.springframework.web: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: logs/iam-platform.log
+    max-size: 100MB
+    max-history: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+security:
+  jwt:
+    secret: xiaoxin-iam-platform-jwt-secret-key-2024
+    expiration: 7200000
+    refresh-expiration: 604800000
+  oauth2:
+    authorization-server:
+      issuer: http://localhost:8080
+    resource-server:
+      jwt:
+        issuer-uri: http://localhost:8080
+
+thread-pool:
+  core-pool-size: 10
+  max-pool-size: 50
+  queue-capacity: 1000
+  keep-alive-seconds: 60

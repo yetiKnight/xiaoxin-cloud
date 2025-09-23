@@ -6,6 +6,10 @@ spring:
     name: iam-auth-service
   profiles:
     active: dev
+  config:
+    import:
+      - optional:nacos:iam-auth-service-dev.yml
+      - optional:nacos:iam-common.yml
   cloud:
     nacos:
       discovery:
@@ -28,11 +32,9 @@ spring:
         refresh-enabled: true
     sentinel:
       transport:
-        dashboard: ${sentinel.dashboard:localhost:8080}
         port: 8718
-      eager: true
       datasource:
-        ds1:
+        flow:
           nacos:
             server-addr: ${nacos.server-addr:localhost:8848}
             namespace: ${nacos.namespace:dev}

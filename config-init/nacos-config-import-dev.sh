@@ -13,11 +13,11 @@
 NACOS_SERVER="http://localhost:8848"
 NACOS_USERNAME="nacos"
 NACOS_PASSWORD="nacos"
-NACOS_NAMESPACE="public"
-NACOS_GROUP="DEFAULT_GROUP"
+NACOS_NAMESPACE="dev"
+NACOS_GROUP="IAM_GROUP"
 
 # 配置文件目录
-CONFIG_DIR="./config"
+CONFIG_DIR="./config/dev"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -93,7 +93,7 @@ import_config() {
 
 # 配置文件列表
 declare -A configs=(
-    ["iam-common.yml"]="iam-common.yml"
+    ["database-monitoring.yml"]="database-monitoring.yml"
     ["iam-auth-service-dev.yml"]="iam-auth-service-dev.yml"
     ["iam-core-service-dev.yml"]="iam-core-service-dev.yml"
     ["iam-system-service-dev.yml"]="iam-system-service-dev.yml"

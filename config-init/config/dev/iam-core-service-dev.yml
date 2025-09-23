@@ -1,52 +1,49 @@
-# IAM核心服务开发环境配置
+spring:
+  cloud:
+    nacos:
+      config:
+        shared-configs:
+          - data-id: iam-platform-dev.yml
+            group: IAM_GROUP
+            refresh: true
+          - data-id: iam-infrastructure-dev.yml
+            group: IAM_GROUP
+            refresh: true
 
-# 数据库配置
 db:
   driver-class-name: com.mysql.cj.jdbc.Driver
   url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_core?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
   username: iam_core
   password: 7YDCq@TfC_L9vgP
 
-# Redis配置
 redis:
-  host: localhost
-  port: 6379
-  password: eW7$zR2p#9qL!5v@1sKx8nP6dYf*4gHj
   database:
     core: 2
 
-# 业务配置
 business:
-  # 用户配置
   user:
     default-password: 123456
     password-expire-days: 90
     max-login-attempts: 5
     lock-time-minutes: 30
-  
-  # 角色配置
   role:
     super-admin: SUPER_ADMIN
     admin: ADMIN
     user: USER
-  
-  # 权限配置
   permission:
     cache-expire-seconds: 3600
     refresh-interval-seconds: 1800
 
-# 数据权限配置
 data-scope:
   enabled: true
   default-scope: DEPT_AND_CHILD
   scopes:
-    ALL: 1          # 全部数据权限
-    CUSTOM: 2       # 自定数据权限
-    DEPT_AND_CHILD: 3  # 部门及以下数据权限
-    DEPT_ONLY: 4    # 仅本部门数据权限
-    SELF_ONLY: 5    # 仅本人数据权限
+    ALL: 1
+    CUSTOM: 2
+    DEPT_AND_CHILD: 3
+    DEPT_ONLY: 4
+    SELF_ONLY: 5
 
-# 文件上传配置
 file:
   upload:
     path: /data/uploads/
@@ -62,7 +59,6 @@ file:
       - xls
       - xlsx
 
-# 导入导出配置
 export:
   max-rows: 10000
   temp-path: /data/temp/

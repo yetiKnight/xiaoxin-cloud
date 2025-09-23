@@ -63,7 +63,7 @@ public class UserEventListener implements RocketMQListener<UserEvent> {
 
 ### 1. Nacos配置
 - 配置文件格式: `{service-name}-{profile}.yml`
-- 配置分组: DEFAULT_GROUP
+- 配置分组: IAM_GROUP
 - 配置命名空间: 按环境隔离
 
 ### 2. 服务注册

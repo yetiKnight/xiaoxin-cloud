@@ -6,6 +6,10 @@ spring:
     name: iam-system-service
   profiles:
     active: dev
+  config:
+    import:
+      - optional:nacos:iam-system-service-dev.yml
+      - optional:nacos:iam-common.yml
   cloud:
     nacos:
       discovery:
@@ -28,9 +32,15 @@ spring:
         refresh-enabled: true
     sentinel:
       transport:
-        dashboard: ${sentinel.dashboard:localhost:8080}
         port: 8720
-      eager: true
+      datasource:
+        flow:
+          nacos:
+            server-addr: ${nacos.server-addr:localhost:8848}
+            namespace: ${nacos.namespace:dev}
+            dataId: iam-system-service-flow-rules
+            groupId: SENTINEL_GROUP
+            rule-type: flow
 
 # 数据源配置
   datasource:

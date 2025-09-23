@@ -1,0 +1,82 @@
+spring:
+  cloud:
+    nacos:
+      config:
+        shared-configs:
+          - data-id: iam-platform-dev.yml
+            group: IAM_GROUP
+            refresh: true
+          - data-id: iam-infrastructure-dev.yml
+            group: IAM_GROUP
+            refresh: true
+
+db:
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_auth?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+  username: iam_auth
+  password: yP!6sN$V4gH2q@D
+
+redis:
+  database:
+    auth: 2
+    session: 3
+
+oauth2:
+  authorization-server:
+    issuer: http://localhost:8081
+    client:
+      iam-web-client:
+        registration:
+          client-id: iam-web-client
+          client-secret: "{noop}iam-web-secret"
+          client-authentication-methods:
+            - client_secret_basic
+            - client_secret_post
+          authorization-grant-types:
+            - authorization_code
+            - refresh_token
+            - client_credentials
+          redirect-uris:
+            - http://localhost:8088/login/oauth2/code/iam
+            - http://localhost:8088/authorized
+          scopes:
+            - read
+            - write
+            - openid
+            - profile
+        require-authorization-consent: true
+
+third-party:
+  wechat:
+    app-id: ${WECHAT_APP_ID:}
+    app-secret: ${WECHAT_APP_SECRET:}
+    redirect-uri: http://localhost:8081/auth/callback/wechat
+  dingtalk:
+    app-id: ${DINGTALK_APP_ID:}
+    app-secret: ${DINGTALK_APP_SECRET:}
+    redirect-uri: http://localhost:8081/auth/callback/dingtalk
+  github:
+    client-id: ${GITHUB_CLIENT_ID:}
+    client-secret: ${GITHUB_CLIENT_SECRET:}
+    redirect-uri: http://localhost:8081/auth/callback/github
+
+captcha:
+  enabled: true
+  type: math
+  expire: 300
+  
+sms:
+  provider: aliyun
+  aliyun:
+    access-key: ${SMS_ACCESS_KEY:}
+    access-secret: ${SMS_ACCESS_SECRET:}
+    sign-name: 小信云
+    template-code: SMS_123456789
+
+mail:
+  host: smtp.163.com
+  port: 465
+  username: ${MAIL_USERNAME:}
+  password: ${MAIL_PASSWORD:}
+  from: ${MAIL_FROM:noreply@xiaoxin.com}
+  ssl: true
