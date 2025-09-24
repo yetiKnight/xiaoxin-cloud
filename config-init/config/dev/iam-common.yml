@@ -29,23 +29,28 @@ spring:
           config:
             multi-statement-allow: true
 
-  redis:
-    host: ${redis.host:localhost}
-    port: ${redis.port:6379}
-    password: ${redis.password:123456}
-    timeout: ${redis.timeout:10000ms}
-    lettuce:
-      pool:
-        max-active: ${redis.pool.max-active:8}
-        max-wait: ${redis.pool.max-wait:-1ms}
-        max-idle: ${redis.pool.max-idle:8}
-        min-idle: ${redis.pool.min-idle:0}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
   cloud:
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:localhost:8181}
+      eager: true
     stream:
       rocketmq:
         binder:
-          name-server: localhost:9876
+          name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
         bindings:
           output:
             producer:
@@ -53,6 +58,7 @@ spring:
           input:
             consumer:
               group: iam-platform-consumer-group
+
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*Mapper.xml
@@ -64,7 +70,7 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
-      logic-delete-field: delFlag
+      logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
 
@@ -76,20 +82,61 @@ seata:
     vgroup-mapping:
       iam-platform-group: default
     grouplist:
-      default: localhost:8091
+      default: ${SEATA_SERVER:localhost:8091}
     enable-degrade: false
     disable-global-transaction: false
   config:
     type: nacos
     nacos:
-      server-addr: localhost:8848
-      namespace: dev
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      namespace: ${NACOS_NAMESPACE:dev}
       group: SEATA_GROUP
       data-id: seataServer.properties
   registry:
     type: nacos
     nacos:
       application: seata-server
-      server-addr: localhost:8848
-      namespace: dev
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      namespace: ${NACOS_NAMESPACE:dev}
       group: SEATA_GROUP
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:xiaoxin-iam-platform-jwt-secret-key-2024}
+    expiration: ${JWT_EXPIRATION:7200000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  oauth2:
+    authorization-server:
+      issuer: ${OAUTH2_ISSUER:http://localhost:8080}
+    resource-server:
+      jwt:
+        issuer-uri: ${OAUTH2_ISSUER:http://localhost:8080}
+
+logging:
+  level:
+    com.xiaoxin.iam: info
+    org.springframework.cloud: info
+    org.springframework.web: info
+    org.springframework.security: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus,druid"
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+thread-pool:
+  core-pool-size: 10
+  max-pool-size: 50
+  queue-capacity: 1000
+  keep-alive-seconds: 60

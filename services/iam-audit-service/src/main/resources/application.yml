@@ -1,3 +1,5 @@
+# IAM审计服务配置
+# Nacos连接信息必须在本地配置，不能从Nacos加载
 server:
   port: 8083
 
@@ -5,127 +7,35 @@ spring:
   application:
     name: iam-audit-service
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  # 从Nacos配置中心导入配置  
   config:
     import:
-      - optional:nacos:iam-audit-service-dev.yml
-      - optional:nacos:iam-common.yml
+      - optional:nacos:iam-common.yml?refresh=true
+      - optional:nacos:iam-audit-service-${spring.profiles.active}.yml?refresh=true
+  
   cloud:
     nacos:
+      # 服务注册发现配置
       discovery:
-        server-addr: ${nacos.server-addr:localhost:8848}
-        namespace: ${nacos.namespace:dev}
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:dev}
         group: IAM_GROUP
         cluster-name: ${spring.profiles.active}
         metadata:
           version: ${project.version:1.0.0}
           zone: ${app.zone:default}
+      
+      # 配置中心连接信息
       config:
-        server-addr: ${nacos.server-addr:localhost:8848}
-        namespace: ${nacos.namespace:dev}
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:dev}
         group: IAM_GROUP
         file-extension: yml
-        shared-configs:
-          - data-id: iam-common.yml
-            group: IAM_GROUP
-            refresh: true
         refresh-enabled: true
-    sentinel:
-      transport:
-        port: 8721
-      datasource:
-        flow:
-          nacos:
-            server-addr: ${nacos.server-addr:localhost:8848}
-            namespace: ${nacos.namespace:dev}
-            dataId: iam-audit-service-flow-rules
-            groupId: SENTINEL_GROUP
-            rule-type: flow
 
-# 数据源配置
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    druid:
-      driver-class-name: ${db.driver-class-name:com.mysql.cj.jdbc.Driver}
-      url: ${db.url:jdbc:mysql://localhost:3306/iam_audit?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8}
-      username: ${db.username:root}
-      password: ${db.password:123456}
-      initial-size: 10
-      max-active: 100
-      min-idle: 10
-      max-wait: 60000
-      pool-prepared-statements: true
-      max-pool-prepared-statement-per-connection-size: 20
-      time-between-eviction-runs-millis: 60000
-      min-evictable-idle-time-millis: 300000
-      validation-query: SELECT 1 FROM DUAL
-      test-while-idle: true
-      test-on-borrow: false
-      test-on-return: false
-      stat-view-servlet:
-        enabled: true
-        url-pattern: /druid/*
-      filter:
-        stat:
-          log-slow-sql: true
-          slow-sql-millis: 1000
-          merge-sql: false
-        wall:
-          config:
-            multi-statement-allow: true
-
-# Redis配置 & MongoDB配置
-  data:
-    redis:
-      host: ${redis.host:localhost}
-      port: ${redis.port:6379}
-      password: ${redis.password:}
-      database: ${redis.database.audit:3}
-      timeout: 10000ms
-      lettuce:
-        pool:
-          enabled: true
-          max-active: 8
-          max-wait: -1ms
-          max-idle: 8
-          min-idle: 0
-    mongodb:
-      host: ${mongodb.host:localhost}
-      port: ${mongodb.port:27017}
-      database: ${mongodb.database:iam_audit}
-      username: ${mongodb.username:}
-      password: ${mongodb.password:} 
-
-# MyBatis Plus配置
-mybatis-plus:
-  mapper-locations: classpath*:mapper/**/*Mapper.xml
-  type-aliases-package: com.xiaoxin.iam.audit.entity
-  configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: false
-    call-setters-on-nulls: true
-    jdbc-type-for-null: 'null'
-  global-config:
-    db-config:
-      id-type: ASSIGN_ID
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-
-# 日志配置
+# 本地日志配置（不依赖Nacos）
 logging:
-  level:
-    '[com.xiaoxin.iam.audit]': debug
-    '[org.springframework.cloud]': debug
-  pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
-
-# 管理端点
-management:
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  endpoint:
-    health:
-      show-details: always
+  file:
+    name: logs/${spring.application.name}-${spring.profiles.active}.log
