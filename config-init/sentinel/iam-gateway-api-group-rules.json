@@ -1,0 +1,63 @@
+[
+  {
+    "apiName": "auth-api",
+    "predicateItems": [
+      {
+        "pattern": "/api/v1/auth/**"
+      }
+    ]
+  },
+  {
+    "apiName": "core-api", 
+    "predicateItems": [
+      {
+        "pattern": "/api/v1/core/**"
+      }
+    ]
+  },
+  {
+    "apiName": "system-api",
+    "predicateItems": [
+      {
+        "pattern": "/api/v1/system/**"
+      }
+    ]
+  },
+  {
+    "apiName": "audit-api",
+    "predicateItems": [
+      {
+        "pattern": "/api/v1/audit/**"
+      }
+    ]
+  },
+  {
+    "apiName": "frontend-api",
+    "predicateItems": [
+      {
+        "pattern": "/",
+        "matchStrategy": 1
+      },
+      {
+        "pattern": "/login"
+      },
+      {
+        "pattern": "/dashboard"
+      },
+      {
+        "pattern": "/assets/**"
+      },
+      {
+        "pattern": "/static/**"
+      }
+    ]
+  },
+  {
+    "apiName": "health-api",
+    "predicateItems": [
+      {
+        "pattern": "/actuator/**"
+      }
+    ]
+  }
+]

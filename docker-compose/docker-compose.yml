@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # MySQL数据库
+  # MySQL Database
   mysql:
     image: mysql:8.0
     container_name: iam-mysql
@@ -20,7 +20,7 @@ services:
     networks:
       - iam-network
 
-  # Redis缓存
+  # Redis Cache
   redis:
     image: redis:6.2-alpine
     container_name: iam-redis
@@ -48,7 +48,7 @@ services:
     networks:
       - iam-network
 
-  # Nacos注册中心
+  # Nacos Registry Center
   nacos:
     image: nacos/nacos-server:v2.4.2
     container_name: iam-nacos

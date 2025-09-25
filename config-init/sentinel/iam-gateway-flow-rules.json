@@ -1,0 +1,65 @@
+[
+  {
+    "resource": "auth-api",
+    "grade": 1,
+    "count": 30,
+    "burst": 60,
+    "intervalSec": 1
+  },
+  {
+    "resource": "iam-auth-service",
+    "grade": 1,
+    "count": 50,
+    "burst": 100,
+    "intervalSec": 1
+  },
+  {
+    "resource": "core-api",
+    "grade": 1,
+    "count": 60,
+    "burst": 120,
+    "intervalSec": 1
+  },
+  {
+    "resource": "iam-core-service",
+    "grade": 1,
+    "count": 80,
+    "burst": 160,
+    "intervalSec": 1
+  },
+  {
+    "resource": "system-api",
+    "grade": 1,
+    "count": 40,
+    "burst": 80,
+    "intervalSec": 1
+  },
+  {
+    "resource": "iam-system-service",
+    "grade": 1,
+    "count": 50,
+    "burst": 100,
+    "intervalSec": 1
+  },
+  {
+    "resource": "audit-api",
+    "grade": 1,
+    "count": 20,
+    "burst": 40,
+    "intervalSec": 1
+  },
+  {
+    "resource": "iam-audit-service",
+    "grade": 1,
+    "count": 30,
+    "burst": 60,
+    "intervalSec": 1
+  },
+  {
+    "resource": "iam-frontend",
+    "grade": 1,
+    "count": 100,
+    "burst": 200,
+    "intervalSec": 1
+  }
+]

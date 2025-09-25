@@ -9,6 +9,134 @@ spring:
   main:
     web-application-type: reactive
 
+# IAM Security Configuration
+iam:
+  security:
+    # JWT Configuration
+    jwt:
+      secret: ${IAM_JWT_SECRET:xiaoxin-iam-platform-jwt-secret-key-2024-secure}
+      expiration: ${IAM_JWT_EXPIRATION:7200}
+      refresh-expiration: ${IAM_JWT_REFRESH_EXPIRATION:604800}
+      issuer: xiaoxin-iam
+      token-prefix: "Bearer "
+      enable-refresh: true
+    
+    # CORS Configuration
+    cors:
+      enabled: true
+      allowed-origins:
+        - "http://localhost:3000"
+        - "http://localhost:8088"
+        - "https://iam.xiaoxin.com"
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        - PATCH
+      allowed-headers:
+        - "*"
+      exposed-headers:
+        - X-Request-Id
+        - X-Response-Time
+        - X-Gateway-Version
+      allow-credentials: true
+      max-age: 3600
+    
+    # Security Headers Configuration
+    security-headers:
+      enabled: true
+      content-security-policy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+      hsts-max-age: 31536000
+      hsts-include-subdomains: true
+      hsts-preload: true
+      referrer-policy: "strict-origin-when-cross-origin"
+      permissions-policy: "camera=(), microphone=(), geolocation=(), payment=()"
+    
+    # Authentication Configuration
+    auth:
+      enabled: true
+      whitelist:
+        # Authentication endpoints
+        - "/api/v1/auth/login"
+        - "/api/v1/auth/logout"
+        - "/api/v1/auth/register"
+        - "/api/v1/auth/refresh"
+        - "/api/v1/auth/captcha"
+        - "/api/v1/auth/oauth2/**"
+        - "/api/v1/auth/callback/**"
+        # Health check endpoints
+        - "/actuator/health"
+        - "/actuator/info"
+        # Static resources
+        - "/favicon.ico"
+        - "/assets/**"
+        - "/static/**"
+        # Frontend pages
+        - "/"
+        - "/login"
+        - "/register"
+        - "/error"
+        # WebSocket
+        - "/ws/**"
+      admin-paths:
+        - "/api/v1/system/**"
+        - "/api/v1/audit/**"
+        - "/actuator/**"
+      token-header: "Authorization"
+      token-param: "token"
+      enable-ip-whitelist: false
+      ip-whitelist: []
+      enable-rate-limit: true
+      default-rate-limit: 100
+
+# Basic Monitoring Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway  # Only expose basic endpoints
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    gateway:
+      enabled: true
+  health:
+    redis:
+      enabled: true
+    nacos:
+      enabled: true
+    sentinel:
+      enabled: true
+    diskspace:
+      enabled: true
+    ping:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    build:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{50} - %msg%n"
+  level:
+    com.xiaoxin.iam.gateway: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: INFO
+    io.micrometer: INFO
+    org.springframework.boot.actuator: INFO

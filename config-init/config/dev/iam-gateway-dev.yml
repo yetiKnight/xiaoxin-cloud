@@ -4,6 +4,73 @@ spring:
       database: 1
 
   cloud:
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:localhost:8181}
+        port: 8719
+        heartbeat-interval-ms: 10000
+        client-ip: ${spring.cloud.client.ip-address:127.0.0.1}
+      datasource:
+        gw-flow:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            namespace: dev
+            group-id: SENTINEL_GROUP
+            data-id: iam-gateway-flow-rules
+            rule-type: GW_FLOW
+        gw-api-group:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            namespace: dev
+            group-id: SENTINEL_GROUP
+            data-id: iam-gateway-api-group-rules
+            rule-type: GW_API_GROUP
+        gw-degrade:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            namespace: dev
+            group-id: SENTINEL_GROUP
+            data-id: iam-gateway-degrade-rules
+            rule-type: DEGRADE
+        system:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            namespace: dev
+            group-id: SENTINEL_GROUP
+            data-id: iam-gateway-system-rules
+            rule-type: SYSTEM
+        param-flow:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            namespace: dev
+            group-id: SENTINEL_GROUP
+            data-id: iam-gateway-param-flow-rules
+            rule-type: PARAM_FLOW
+        authority:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            namespace: dev
+            group-id: SENTINEL_GROUP
+            data-id: iam-gateway-authority-rules
+            rule-type: AUTHORITY
+      scg:
+        fallback:
+          mode: response
+          response-status: 429
+          response-body: '{"code":429,"message":"Too many requests, please try again later","data":null,"timestamp":"${#date}"}'
+          content-type: application/json
+        order: -100
+      eager: true
+      log:
+        dir: logs/sentinel
+        use-pid: true
+        switch-pid: false
+      servlet:
+        enabled: false
+      filter:
+        enabled: true
+        order: -2147483648
+
     gateway:
       discovery:
         locator:
@@ -34,6 +101,36 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       
       routes:
+        - id: iam-auth-service-login
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/api/v1/auth/login,/api/v1/auth/logout,/api/v1/auth/refresh
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.requestedTokens: 1
+            - name: Retry
+              args:
+                retries: 3
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+        
+        - id: iam-auth-service-oauth2
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/api/v1/auth/oauth2/**,/api/v1/auth/callback/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        
         - id: iam-auth-service
           uri: lb://iam-auth-service
           predicates:
@@ -41,9 +138,39 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+        
+        - id: iam-core-service-users
+          uri: lb://iam-core-service
+          predicates:
+            - Path=/api/v1/core/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+            - AddRequestHeader=X-Service-Name, iam-core-service
+        
+        - id: iam-core-service-roles
+          uri: lb://iam-core-service
+          predicates:
+            - Path=/api/v1/core/roles/**,/api/v1/core/permissions/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 40
+                redis-rate-limiter.burstCapacity: 80
+        
+        - id: iam-core-service-depts
+          uri: lb://iam-core-service
+          predicates:
+            - Path=/api/v1/core/depts/**,/api/v1/core/posts/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
         
         - id: iam-core-service
           uri: lb://iam-core-service
@@ -52,8 +179,28 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 50
-                redis-rate-limiter.burstCapacity: 100
+                redis-rate-limiter.replenishRate: 60
+                redis-rate-limiter.burstCapacity: 120
+        
+        - id: iam-system-service-config
+          uri: lb://iam-system-service
+          predicates:
+            - Path=/api/v1/system/config/**,/api/v1/system/dict/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+        
+        - id: iam-system-service-notification
+          uri: lb://iam-system-service
+          predicates:
+            - Path=/api/v1/system/notifications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
         
         - id: iam-system-service
           uri: lb://iam-system-service
@@ -62,8 +209,28 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 30
-                redis-rate-limiter.burstCapacity: 60
+                redis-rate-limiter.replenishRate: 40
+                redis-rate-limiter.burstCapacity: 80
+        
+        - id: iam-audit-service-logs
+          uri: lb://iam-audit-service
+          predicates:
+            - Path=/api/v1/audit/logs/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+        
+        - id: iam-audit-service-reports
+          uri: lb://iam-audit-service
+          predicates:
+            - Path=/api/v1/audit/reports/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
         
         - id: iam-audit-service
           uri: lb://iam-audit-service
@@ -72,39 +239,42 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+        
+        - id: iam-frontend-assets
+          uri: lb://iam-frontend
+          predicates:
+            - Path=/assets/**,/static/**,/favicon.ico
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+            - name: SetPath
+              args:
+                template: /{segment}
+        
+        - id: iam-frontend
+          uri: lb://iam-frontend
+          predicates:
+            - Path=/,/login,/dashboard,/users/**,/roles/**,/system/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+        
+        
+        - id: websocket-notification
+          uri: lb:ws://iam-system-service
+          predicates:
+            - Path=/ws/notifications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
-    
-    sentinel:
-      datasource:
-        gw-flow:
-          nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-            namespace: dev
-            dataId: iam-gateway-flow-rules
-            groupId: SENTINEL_GROUP
-            rule-type: gw-flow
-        gw-api-group:
-          nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-            namespace: dev
-            dataId: iam-gateway-api-group-rules
-            groupId: SENTINEL_GROUP
-            rule-type: gw-api-group
-        gw-degrade:
-          nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-            namespace: dev
-            dataId: iam-gateway-degrade-rules
-            groupId: SENTINEL_GROUP
-            rule-type: gw-degrade
-        system:
-          nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-            namespace: dev
-            dataId: iam-gateway-system-rules
-            groupId: SENTINEL_GROUP
-            rule-type: system
 
 security:
   jwt:
@@ -121,19 +291,25 @@ auth:
     - /api/v1/auth/callback/**
     - /actuator/**
     - /druid/**
+    - /favicon.ico
+    - /assets/**
+    - /static/**
+    - /fallback/**
 
 rate-limit:
   enabled: true
   default-replenish-rate: 10
   default-burst-capacity: 20
-  
-circuit-breaker:
-  enabled: true
-  failure-rate-threshold: 50
-  slow-call-rate-threshold: 50
-  slow-call-duration-threshold: 2000
-  minimum-number-of-calls: 10
-  sliding-window-size: 100
+
+sentinel:
+  degrade:
+    enabled: true
+    failure-rate-threshold: 50.0
+    slow-call-rate-threshold: 50.0
+    slow-call-duration-threshold: 2000
+    minimum-number-of-calls: 10
+    sliding-window-size: 100
+    wait-duration-in-open-state: 10000
 
 retry:
   enabled: true
@@ -142,6 +318,9 @@ retry:
     initial-interval: 1000
     max-interval: 10000
     multiplier: 2.0
+
+seata:
+  enabled: false
 
 app:
   name: xiaoxin-iam-gateway

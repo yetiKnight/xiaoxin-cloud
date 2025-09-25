@@ -1,0 +1,40 @@
+[
+  {
+    "resource": "auth-api",
+    "paramIdx": 0,
+    "paramFlowItemList": [
+      {
+        "object": "login",
+        "classType": "java.lang.String",
+        "count": 5,
+        "durationInSec": 60
+      }
+    ],
+    "count": 10,
+    "grade": 1,
+    "durationInSec": 1,
+    "controlBehavior": 0,
+    "maxQueueingTimeMs": 0,
+    "burstCount": 0,
+    "clusterMode": false
+  },
+  {
+    "resource": "core-api",
+    "paramIdx": 0,
+    "paramFlowItemList": [
+      {
+        "object": "userId",
+        "classType": "java.lang.String", 
+        "count": 20,
+        "durationInSec": 60
+      }
+    ],
+    "count": 30,
+    "grade": 1,
+    "durationInSec": 1,
+    "controlBehavior": 0,
+    "maxQueueingTimeMs": 0,
+    "burstCount": 0,
+    "clusterMode": false
+  }
+]

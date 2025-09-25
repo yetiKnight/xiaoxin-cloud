@@ -9,6 +9,7 @@ globs: *.java
 - 使用JDK 17特性
 - 统一使用UTF-8编码
 - 代码注释完整，使用中文注释
+- **优先使用common模块**: 遇到通用功能需求时，必须首先检查iam-common模块是否已有相应实现
 
 ## 包结构规范
 ```
@@ -96,11 +97,93 @@ public class Constants {
 }
 ```
 
+### 8. 优先使用common模块通用实现
+开发时必须遵循以下顺序：
+1. **首先检查**: 查看iam-common模块是否已有相应的工具类或实现
+2. **考虑新增**: 如果common中没有，考虑在common模块中新增通用实现
+3. **最后实现**: 只有在前两步都不适用时，才在当前模块中实现
+
+常用通用工具类：
+```java
+// JSON处理 - 使用JsonUtils而不是自己new ObjectMapper
+JsonUtils.toJson(object);
+JsonUtils.fromJson(json, Class.class);
+
+// 字符串处理 - 使用StringUtils
+StringUtils.isBlank(str);
+StringUtils.hasText(str);
+
+// 日期处理 - 使用DateUtils
+DateUtils.formatDate(date);
+DateUtils.parseDate(dateStr);
+
+// 集合处理 - 使用CollectionUtils
+CollectionUtils.isEmpty(collection);
+CollectionUtils.isNotEmpty(collection);
+```
+
 ## 代码质量要求
 - 单元测试覆盖率 > 80%
 - 代码复杂度控制在合理范围
 - 避免重复代码，抽取公共方法
 - 合理使用设计模式
+
+## 配置文件规范
+
+### 1. 配置文件命名与格式
+- **配置文件格式**: 统一使用YAML格式（.yml）
+- **命名规范**: `{service-name}-{profile}.yml`
+- **编码要求**: 统一使用UTF-8编码
+
+### 2. 配置内容规范
+- **严禁中文**: 配置文件中严禁出现任何中文字符，包括注释
+- **注释语言**: 配置注释必须使用英文
+- **值的规范**: 所有配置值必须使用英文或数字
+
+### 3. 配置分层管理
+```yaml
+# 正确示例：全英文配置
+spring:
+  application:
+    name: iam-gateway-service
+  
+# 错误示例：包含中文（禁止）
+# spring:
+#   application:
+#     name: IAM网关服务  # 禁止中文
+```
+
+### 4. 国际化处理
+- 需要显示中文的地方使用国际化文件（.properties）
+- 配置中使用国际化key，不直接写中文
+```yaml
+# 正确方式
+notification:
+  sms:
+    sign-name: ${sms.sign.name:xiaoxin-cloud}
+    template-code: ${sms.template.login:SMS_123456}
+
+# 错误方式
+# notification:
+#   sms:
+#     sign-name: 小信云  # 禁止
+```
+
+### 5. 敏感信息处理
+- 敏感配置使用环境变量或配置中心
+- 不在配置文件中硬编码密码等敏感信息
+```yaml
+# 正确方式
+spring:
+  datasource:
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+```
+
+### 6. 配置验证
+- 提交前必须检查配置文件是否包含中文
+- 使用工具进行自动化检查
+- CI/CD流程中集成配置文件格式检查
 
 ## 性能规范
 - 数据库查询使用分页

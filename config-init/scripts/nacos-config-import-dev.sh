@@ -17,7 +17,7 @@ NACOS_NAMESPACE="dev"
 NACOS_GROUP="IAM_GROUP"
 
 # 配置文件目录
-CONFIG_DIR="./config/dev"
+CONFIG_DIR="../config/dev"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -99,6 +99,7 @@ declare -A configs=(
     ["iam-system-service-dev.yml"]="iam-system-service-dev.yml"
     ["iam-audit-service-dev.yml"]="iam-audit-service-dev.yml"
     ["iam-gateway-dev.yml"]="iam-gateway-dev.yml"
+    ["iam-common.yml"]="iam-common.yml"
 )
 
 # 导入所有配置文件

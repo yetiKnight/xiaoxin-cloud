@@ -129,17 +129,17 @@ public class ExceptionConfig {
     /**
      * 是否启用异常熔断
      */
-    private boolean enableCircuitBreaker = false;
+    private boolean enableSentinel = true;
 
     /**
-     * 熔断器失败阈值
+     * Sentinel限流阈值
      */
-    private int circuitBreakerFailureThreshold = 10;
+    private int sentinelRateLimitThreshold = 100;
 
     /**
-     * 熔断器恢复时间（秒）
+     * Sentinel熔断阈值
      */
-    private int circuitBreakerRecoveryTime = 60;
+    private int sentinelCircuitBreakerThreshold = 50;
 
     /**
      * 是否启用异常限流

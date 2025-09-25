@@ -229,6 +229,48 @@ mvn spring-boot:run -pl apps/iam-frontend
 - 审计报表生成
 - 合规性检查
 
+## 配置文件规范
+
+⚠️ **重要规定**: 所有配置文件（*.yml, *.yaml, *.properties）严禁包含中文字符！
+
+### 规范要求
+- **注释语言**: 配置文件中的注释必须使用英文
+- **配置值**: 所有配置值必须使用英文或环境变量
+- **国际化**: 需要显示中文的地方使用国际化文件处理
+
+### 检查工具
+```bash
+# 检查配置文件是否包含中文
+./scripts/check-config-chinese.sh
+
+# Git提交前会自动检查
+git commit -m "your commit message"
+```
+
+### 正确示例
+```yaml
+# ✅ 正确：全英文配置
+spring:
+  application:
+    name: iam-gateway-service
+notification:
+  sms:
+    sign-name: ${SMS_SIGN_NAME:xiaoxin-cloud}
+```
+
+### 错误示例
+```yaml
+# ❌ 错误：包含中文（严禁）
+spring:
+  application:
+    name: IAM网关服务  # 禁止中文
+notification:
+  sms:
+    sign-name: 小信云  # 禁止中文
+```
+
+详细规范请参考：[配置文件规范文档](.cursor/rules/11-configuration-standards.mdc)
+
 ## 开发指南
 
 ### 代码规范

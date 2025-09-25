@@ -1,0 +1,17 @@
+[
+  {
+    "resource": "system-api",
+    "strategy": 0,
+    "limitApp": "admin-role"
+  },
+  {
+    "resource": "audit-api", 
+    "strategy": 0,
+    "limitApp": "admin-role,audit-role"
+  },
+  {
+    "resource": "/actuator/**",
+    "strategy": 1,
+    "limitApp": "monitor-client"
+  }
+]

@@ -1,4 +1,4 @@
-# IAM认证服务配置文件
+# IAM Authentication Service Configuration
 
 spring:
   cloud:
@@ -15,7 +15,7 @@ spring:
             groupId: SENTINEL_GROUP
             rule-type: flow
   
-  # 数据源配置
+  # Datasource Configuration
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
@@ -49,12 +49,12 @@ spring:
           config:
             multi-statement-allow: true
 
-  # Redis配置（认证服务专用数据库）
+  # Redis Configuration (Auth service dedicated database)
   data:
     redis:
       database: ${redis.database.auth}
 
-# MyBatis Plus配置
+# MyBatis Plus Configuration
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*Mapper.xml
   type-aliases-package: com.xiaoxin.iam.auth.entity
@@ -70,7 +70,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# 认证服务特定日志配置
+# Authentication Service Specific Logging Configuration
 logging:
   level:
     com.xiaoxin.iam.auth: debug
@@ -136,7 +136,7 @@ sms:
   aliyun:
     access-key: ${SMS_ACCESS_KEY:}
     access-secret: ${SMS_ACCESS_SECRET:}
-    sign-name: 小信云
+    sign-name: ${SMS_SIGN_NAME:xiaoxin-cloud}
     template-code: SMS_123456789
 
 mail:

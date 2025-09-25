@@ -43,7 +43,7 @@ notification:
     aliyun:
       access-key: ${SMS_ACCESS_KEY:}
       access-secret: ${SMS_ACCESS_SECRET:}
-      sign-name: 小新云
+      sign-name: ${SMS_SIGN_NAME:xiaoxin-cloud}
     async: true
     retry-times: 3
   wechat:

@@ -1,0 +1,10 @@
+[
+  {
+    "resource": "iam-gateway",
+    "highestSystemLoad": 10.0,
+    "avgRt": 2000,
+    "maxThread": 200,
+    "qps": 500,
+    "highestCpuUsage": 0.8
+  }
+]

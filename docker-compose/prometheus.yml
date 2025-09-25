@@ -7,12 +7,12 @@ rule_files:
   # - "second_rules.yml"
 
 scrape_configs:
-  # Prometheus自身监控
+  # Prometheus Self Monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # IAM平台服务监控
+  # IAM Platform Services Monitoring
   - job_name: 'iam-gateway'
     static_configs:
       - targets: ['host.docker.internal:8080']
@@ -67,22 +67,22 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 5s
 
-  # MySQL监控
+  # MySQL Monitoring
   - job_name: 'mysql'
     static_configs:
       - targets: ['mysql:3306']
 
-  # Redis监控
+  # Redis Monitoring
   - job_name: 'redis'
     static_configs:
       - targets: ['redis:6379']
 
-  # Nacos监控
+  # Nacos Monitoring
   - job_name: 'nacos'
     static_configs:
       - targets: ['nacos:8848']
 
-  # RocketMQ监控
+  # RocketMQ Monitoring
   - job_name: 'rocketmq-nameserver'
     static_configs:
       - targets: ['rocketmq-nameserver:9876']
@@ -91,7 +91,7 @@ scrape_configs:
     static_configs:
       - targets: ['rocketmq-broker:10911']
 
-  # Elasticsearch监控
+  # Elasticsearch Monitoring
   - job_name: 'elasticsearch'
     static_configs:
       - targets: ['elasticsearch:9200']

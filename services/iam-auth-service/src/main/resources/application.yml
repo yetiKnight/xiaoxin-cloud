@@ -1,5 +1,5 @@
-# IAM认证服务配置
-# Nacos连接信息必须在本地配置，不能从Nacos加载
+# IAM Authentication Service Configuration
+# Nacos connection must be configured locally, cannot be loaded from Nacos
 server:
   port: 8081
 
@@ -9,7 +9,7 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   
-  # 从Nacos配置中心导入配置  
+  # Import configuration from Nacos config center
   config:
     import:
       - optional:nacos:iam-common.yml?refresh=true
@@ -17,7 +17,7 @@ spring:
   
   cloud:
     nacos:
-      # 服务注册发现配置
+      # Service registration and discovery configuration
       discovery:
         server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
         namespace: ${NACOS_NAMESPACE:dev}
@@ -27,7 +27,7 @@ spring:
           version: ${project.version:1.0.0}
           zone: ${app.zone:default}
       
-      # 配置中心连接信息
+      # Config center connection
       config:
         server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
         namespace: ${NACOS_NAMESPACE:dev}
@@ -35,7 +35,7 @@ spring:
         file-extension: yml
         refresh-enabled: true
 
-# 本地日志配置（不依赖Nacos）
+# Local logging configuration (not dependent on Nacos)
 logging:
   file:
     name: logs/${spring.application.name}-${spring.profiles.active}.log

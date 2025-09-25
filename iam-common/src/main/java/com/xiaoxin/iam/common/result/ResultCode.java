@@ -212,7 +212,7 @@ public enum ResultCode implements IResult {
      * 限流相关错误
      */
     RATE_LIMIT_EXCEEDED(13001, "请求频率超限"),
-    CIRCUIT_BREAKER_OPEN(13002, "熔断器已开启"),
+    SENTINEL_BLOCKED(13002, "请求被Sentinel阻塞"),
 
     /**
      * 配置相关错误

@@ -197,9 +197,9 @@ iam:
     retry-interval: 1000            # 异常重试间隔（毫秒）
     enable-fallback: false          # 是否启用异常降级
     fallback-strategy: default      # 异常降级策略
-    enable-circuit-breaker: false   # 是否启用异常熔断
-    circuit-breaker-failure-threshold: 10  # 熔断器失败阈值
-    circuit-breaker-recovery-time: 60      # 熔断器恢复时间（秒）
+    enable-sentinel: true           # 是否启用Sentinel
+    sentinel-rate-limit-threshold: 100     # Sentinel限流阈值
+    sentinel-circuit-breaker-threshold: 50 # Sentinel熔断阈值
     enable-rate-limit: false        # 是否启用异常限流
     rate-limit-threshold: 100       # 限流阈值（每秒）
     rate-limit-window: 60           # 限流时间窗口（秒）

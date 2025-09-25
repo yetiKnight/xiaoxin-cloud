@@ -127,7 +127,7 @@
         <caffeine.version>3.1.8</caffeine.version>
         
         <!-- 限流熔断 -->
-        <sentinel.version>1.8.6</sentinel.version>
+        <sentinel.version>1.8.8</sentinel.version>
         <hystrix.version>1.5.18</hystrix.version>
         
         <!-- 分布式事务 -->
@@ -646,6 +646,26 @@
             <dependency>
                 <groupId>com.alibaba.csp</groupId>
                 <artifactId>sentinel-core</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-datasource-nacos</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-parameter-flow-control</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-transport-simple-http</artifactId>
                 <version>${sentinel.version}</version>
             </dependency>
             

@@ -1,0 +1,70 @@
+[
+  {
+    "resource": "iam-auth-service",
+    "grade": 0,
+    "count": 0.5,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "iam-auth-service", 
+    "grade": 1,
+    "count": 2000,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000
+  },
+  {
+    "resource": "iam-core-service",
+    "grade": 0,
+    "count": 0.5,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "iam-core-service",
+    "grade": 1, 
+    "count": 2000,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000
+  },
+  {
+    "resource": "iam-system-service",
+    "grade": 0,
+    "count": 0.5,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "iam-system-service",
+    "grade": 1,
+    "count": 2000,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000
+  },
+  {
+    "resource": "iam-audit-service",
+    "grade": 0,
+    "count": 0.5,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000,
+    "slowRatioThreshold": 0.5
+  },
+  {
+    "resource": "iam-audit-service",
+    "grade": 1,
+    "count": 2000,
+    "timeWindow": 10,
+    "minRequestAmount": 10,
+    "statIntervalMs": 100000
+  }
+]
