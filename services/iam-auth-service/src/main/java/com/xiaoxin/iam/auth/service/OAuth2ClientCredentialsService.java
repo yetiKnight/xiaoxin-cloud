@@ -180,31 +180,23 @@ public class OAuth2ClientCredentialsService {
         return java.util.UUID.randomUUID().toString().replace("-", "");
     }
 
-    /**
-     * 解析作用域参数
-     * 支持空格、逗号、分号分隔的作用域字符串
-     * 
-     * @param scope 作用域字符串
-     * @return 作用域集合
-     */
-    private Set<String> parseScopes(String scope) {
-        if (StringUtils.isBlank(scope)) {
-            return Set.of();
-        }
-        
-        // 先按空格分割，然后按逗号分割，最后按分号分割
-        Set<String> scopes = StringUtils.splitToSet(scope.trim(), " ");
-        if (scopes.size() == 1 && scopes.iterator().next().contains(",")) {
-            scopes = StringUtils.splitToSet(scope.trim(), ",");
-        }
-        if (scopes.size() == 1 && scopes.iterator().next().contains(";")) {
-            scopes = StringUtils.splitToSet(scope.trim(), ";");
-        }
-        
-        // 过滤空白元素并trim每个元素
-        return scopes.stream()
-                .filter(org.springframework.util.StringUtils::hasText)
-                .map(String::trim)
-                .collect(Collectors.toSet());
+/**
+ * 解析作用域参数
+ * 严格按照OAuth2规范，仅支持空格分隔的作用域字符串
+ * 
+ * @param scope 作用域字符串
+ * @return 作用域集合
+ */
+private Set<String> parseScopes(String scope) {
+    if (StringUtils.isBlank(scope)) {
+        return Set.of();
     }
+    
+    // 按照OAuth2规范，仅支持空格分隔
+    return StringUtils.splitToSet(scope.trim(), " ")
+            .stream()
+            .filter(org.springframework.util.StringUtils::hasText)
+            .map(String::trim)
+            .collect(Collectors.toSet());
+}
 }

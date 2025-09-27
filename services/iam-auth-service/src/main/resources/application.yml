@@ -23,11 +23,4 @@ management:
       export:
         enabled: true
 
-# Local logging configuration (not dependent on Nacos)
-logging:
-  level:
-    "[com.xiaoxin.iam]": debug
-    "[org.springframework.security]": debug
-    "[feign]": debug
-  file:
-    name: logs/${spring.application.name}-${spring.profiles.active}.log
+# Logging configuration is now managed by logback-spring.xml

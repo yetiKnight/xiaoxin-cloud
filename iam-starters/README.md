@@ -234,7 +234,7 @@ public class UserController {
     @PostMapping
     @Operation(summary = "创建用户")
     @OperationLog(module = "用户管理", operation = "创建用户")
-    @PreAuthorize("hasAuthority('user:create')")
+    @PreAuthorize("hasAuthority('user.create')")
     public User createUser(@Valid @RequestBody UserCreateDTO dto) {
         return userService.createUser(dto);
     }

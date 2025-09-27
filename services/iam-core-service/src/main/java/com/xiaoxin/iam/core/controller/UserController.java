@@ -55,7 +55,7 @@ public class UserController {
 
     @GetMapping("/{userId}")
     @Operation(summary = "根据ID查询用户", description = "根据用户ID查询用户详细信息")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<UserVO> getUserById(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId) {
@@ -66,7 +66,7 @@ public class UserController {
 
     @GetMapping("/username/{username}")
     @Operation(summary = "根据用户名查询用户", description = "根据用户名查询用户信息")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<UserDTO> getUserByUsername(
             @Parameter(description = "用户名", required = true)
             @PathVariable @NotEmpty(message = "用户名不能为空") String username) {
@@ -76,7 +76,7 @@ public class UserController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询用户列表", description = "分页查询用户列表")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<PageResult<UserVO>> getUserPage(
             @Parameter(description = "页码", required = true)
             @RequestParam(defaultValue = "1") Integer current,
@@ -108,7 +108,7 @@ public class UserController {
 
     @PostMapping
     @Operation(summary = "创建用户", description = "创建新用户")
-    @PreAuthorize("hasAuthority('user:create')")
+    @PreAuthorize("hasAuthority('user.create')")
     public Result<Boolean> createUser(
             @Parameter(description = "用户信息", required = true)
             @RequestBody @Valid UserCreateDTO userCreateDTO) {
@@ -119,7 +119,7 @@ public class UserController {
 
     @PutMapping("/{userId}")
     @Operation(summary = "更新用户", description = "更新用户信息")
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user.update')")
     public Result<Boolean> updateUser(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId,
@@ -133,7 +133,7 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @Operation(summary = "删除用户", description = "根据ID删除用户")
-    @PreAuthorize("hasAuthority('user:delete')")
+    @PreAuthorize("hasAuthority('user.delete')")
     public Result<Boolean> deleteUser(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId) {
@@ -143,7 +143,7 @@ public class UserController {
 
     @DeleteMapping("/batch")
     @Operation(summary = "批量删除用户", description = "批量删除用户")
-    @PreAuthorize("hasAuthority('user:delete')")
+    @PreAuthorize("hasAuthority('user.delete')")
     public Result<Boolean> deleteUsers(
             @Parameter(description = "用户ID列表", required = true)
             @RequestBody @NotEmpty(message = "用户ID列表不能为空") List<Long> userIds) {
@@ -153,7 +153,7 @@ public class UserController {
 
     @PutMapping("/{userId}/password/reset")
     @Operation(summary = "重置用户密码", description = "重置用户密码")
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user.update')")
     public Result<Boolean> resetPassword(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId,
@@ -178,7 +178,7 @@ public class UserController {
 
     @PutMapping("/{userId}/status")
     @Operation(summary = "更新用户状态", description = "更新用户状态")
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user.update')")
     public Result<Boolean> updateUserStatus(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId,
@@ -190,7 +190,7 @@ public class UserController {
 
     @PutMapping("/{userId}/roles")
     @Operation(summary = "分配用户角色", description = "分配用户角色")
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user.update')")
     public Result<Boolean> assignUserRoles(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId,
@@ -202,7 +202,7 @@ public class UserController {
 
     @PutMapping("/{userId}/depts")
     @Operation(summary = "分配用户部门", description = "分配用户部门")
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user.update')")
     public Result<Boolean> assignUserDepts(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId,
@@ -214,7 +214,7 @@ public class UserController {
 
     @GetMapping("/{userId}/roles")
     @Operation(summary = "查询用户角色", description = "查询用户角色列表")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Role>> getUserRoles(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId) {
@@ -224,7 +224,7 @@ public class UserController {
 
     @GetMapping("/{userId}/depts")
     @Operation(summary = "查询用户部门", description = "查询用户部门列表")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Dept>> getUserDepts(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId) {
@@ -234,7 +234,7 @@ public class UserController {
 
     @GetMapping("/{userId}/permissions")
     @Operation(summary = "查询用户权限", description = "查询用户权限列表")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Permission>> getUserPermissions(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId) {
@@ -244,7 +244,7 @@ public class UserController {
 
     @GetMapping("/{userId}/menus")
     @Operation(summary = "查询用户菜单", description = "查询用户菜单列表")
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Menu>> getUserMenus(
             @Parameter(description = "用户ID", required = true)
             @PathVariable @NotNull(message = "用户ID不能为空") Long userId) {

@@ -22,18 +22,19 @@ public class SecurityHeadersGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            ServerHttpResponse response = exchange.getResponse();
-            
-            // 添加安全响应头
-            addSecurityHeaders(response);
-        }));
+        // 在响应提交前添加安全响应头，避免已提交后再修改导致异常
+        exchange.getResponse().beforeCommit(() -> {
+            addSecurityHeaders(exchange);
+            return Mono.empty();
+        });
+        return chain.filter(exchange);
     }
     
     /**
      * 添加安全响应头
      */
-    private void addSecurityHeaders(ServerHttpResponse response) {
+    private void addSecurityHeaders(ServerWebExchange exchange) {
+        ServerHttpResponse response = exchange.getResponse();
         // X-Content-Type-Options: 防止MIME类型嗅探攻击
         response.getHeaders().add("X-Content-Type-Options", "nosniff");
         
@@ -65,7 +66,7 @@ public class SecurityHeadersGlobalFilter implements GlobalFilter, Ordered {
             "camera=(), microphone=(), geolocation=(), payment=()");
         
         // Cache-Control: 缓存控制（对于API响应）
-        String path = response.getHeaders().getFirst("X-Request-Path");
+        String path = exchange.getRequest().getURI().getPath();
         if (path != null && path.startsWith("/api/")) {
             response.getHeaders().add("Cache-Control", "no-cache, no-store, must-revalidate");
             response.getHeaders().add("Pragma", "no-cache");

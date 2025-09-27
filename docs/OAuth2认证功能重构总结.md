@@ -47,7 +47,7 @@ oauth2:
     client-id: iam-core-service
     client-secret: iam-core-secret-2024
     token-uri: http://iam-auth-service/oauth2/token
-    scope: internal:read internal:write user:read user:write
+    scope: internal.read internal.write user.read user.write
     connect-timeout: 5000
     read-timeout: 10000
     token-cache-expire: 3300
@@ -106,7 +106,7 @@ oauth2:
     client-id: your-service-name
     client-secret: your-service-secret
     token-uri: http://iam-auth-service/oauth2/token
-    scope: internal:read internal:write
+    scope: internal.read internal.write
 ```
 
 #### 3. 自动生效

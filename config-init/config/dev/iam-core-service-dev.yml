@@ -14,11 +14,14 @@ oauth2:
     client-id: ${OAUTH2_CLIENT_ID:iam-core-service}
     client-secret: ${OAUTH2_CLIENT_SECRET:core-service-secret}
     token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
-    scope: ${OAUTH2_CLIENT_SCOPE:internal:read internal:write user:read user:write role:read role:write}
+    scope: ${OAUTH2_CLIENT_SCOPE:internal.read,internal.write,user.read,user.write,role.read,role.write}
     connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
     read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
     token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
     max-retries: ${OAUTH2_MAX_RETRIES:3}
+  resource-server:
+    jwt:
+      jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:8080/oauth2/jwks}
 
 mybatis-plus:
   type-aliases-package: com.xiaoxin.iam.core.entity

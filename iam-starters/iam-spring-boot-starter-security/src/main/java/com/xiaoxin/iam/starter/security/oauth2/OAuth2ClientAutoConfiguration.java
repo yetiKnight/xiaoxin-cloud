@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -37,6 +38,7 @@ public class OAuth2ClientAutoConfiguration {
      */
     @Bean
     @ConditionalOnProperty(prefix = "oauth2.client", name = "enabled", havingValue = "true")
+    @LoadBalanced
     public RestTemplate oauth2RestTemplate(OAuth2Properties oauth2Properties) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(oauth2Properties.getClient().getConnectTimeout());
@@ -68,9 +70,12 @@ public class OAuth2ClientAutoConfiguration {
                 oauth2RestTemplate
         );
         
-        log.info("OAuth2客户端凭据拦截器已启用，客户端ID: {}, 令牌端点: {}", 
+        log.info("OAuth2客户端凭据拦截器已启用，配置详情: clientId={}, tokenUri={}, scope={} (格式化: {}), enabled={}", 
                 oauth2Properties.getClient().getClientId(),
-                oauth2Properties.getClient().getTokenUri());
+                oauth2Properties.getClient().getTokenUri(),
+                oauth2Properties.getClient().getScope(),
+                oauth2Properties.getClient().getFormattedScope(),
+                oauth2Properties.getClient().isEnabled());
         
         return interceptor;
     }

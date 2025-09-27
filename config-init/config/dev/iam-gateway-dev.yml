@@ -121,6 +121,29 @@ spring:
                   factor: 2
                   basedOnPreviousValue: false
         
+        - id: iam-auth-service-oauth2-public
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/oauth2/jwks
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+            - AddRequestHeader=X-Endpoint-Type, oauth2-public
+            - AddRequestHeader=X-Service-Source, gateway
+        
+        - id: iam-auth-service-oauth2-protected
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/oauth2/token,/oauth2/authorize,/oauth2/introspect,/oauth2/revoke
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+            - AddRequestHeader=X-Endpoint-Type, oauth2-protected
+        
         - id: iam-auth-service-oauth2
           uri: lb://iam-auth-service
           predicates:
@@ -289,6 +312,8 @@ auth:
     - /api/v1/auth/register
     - /api/v1/auth/captcha
     - /api/v1/auth/callback/**
+    # OAuth2 Public endpoints
+    - /oauth2/jwks
     - /actuator/**
     - /favicon.ico
     - /assets/**

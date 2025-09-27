@@ -117,7 +117,7 @@ INSERT INTO oauth2_registered_client VALUES (
     'client_secret_basic,client_secret_post',
     'client_credentials',
     '',
-    'internal:read,internal:write,user:read,user:write'
+    'internal.read,internal.write,user.read,user.write'
 );
 ```
 
@@ -127,22 +127,22 @@ INSERT INTO oauth2_registered_client VALUES (
 
 | 作用域 | 说明 | 适用服务 |
 |---|---|---|
-| internal:read | 内部读取权限 | 所有服务 |
-| internal:write | 内部写入权限 | 所有服务 |
-| user:read | 用户数据读取 | 核心服务 |
-| user:write | 用户数据写入 | 核心服务 |
-| audit:read | 审计数据读取 | 审计服务 |
-| audit:write | 审计数据写入 | 审计服务 |
-| system:read | 系统数据读取 | 系统服务 |
-| system:write | 系统数据写入 | 系统服务 |
+| internal.read | 内部读取权限 | 所有服务 |
+| internal.write | 内部写入权限 | 所有服务 |
+| user.read | 用户数据读取 | 核心服务 |
+| user.write | 用户数据写入 | 核心服务 |
+| audit.read | 审计数据读取 | 审计服务 |
+| audit.write | 审计数据写入 | 审计服务 |
+| system.read | 系统数据读取 | 系统服务 |
+| system.write | 系统数据写入 | 系统服务 |
 
 ### 权限控制
 
 ```java
 // 内部用户API需要用户相关权限
 .requestMatchers("/api/v1/internal/users/**")
-    .hasAnyAuthority("SCOPE_internal:read", "SCOPE_internal:write", 
-                     "SCOPE_user:read", "SCOPE_user:write")
+    .hasAnyAuthority("SCOPE_internal.read", "SCOPE_internal.write", 
+                     "SCOPE_user.read", "SCOPE_user.write")
 ```
 
 ## 配置管理
@@ -168,7 +168,7 @@ oauth2:
     enabled: true  # 启用OAuth2客户端
     client-secret: iam-core-secret-2024
     token-uri: http://iam-auth-service/oauth2/token
-    scope: internal:read internal:write user:read user:write
+    scope: internal.read internal.write user.read user.write
 ```
 
 ## 安全特性
@@ -218,7 +218,7 @@ curl -X POST http://localhost:8081/oauth2/token \
   -d "grant_type=client_credentials" \
   -d "client_id=iam-core-service" \
   -d "client_secret=iam-core-secret-2024" \
-  -d "scope=internal:read internal:write"
+  -d "scope=internal.read internal.write"
 ```
 
 ### 3. 令牌验证
@@ -241,7 +241,7 @@ export OAUTH2_CLIENT_SECRET=your-service-secret-here
 export OAUTH2_TOKEN_URI=http://iam-auth-service/oauth2/token
 
 # 作用域
-export OAUTH2_CLIENT_SCOPE="internal:read internal:write"
+export OAUTH2_CLIENT_SCOPE="internal.read internal.write"
 ```
 
 ### 2. 监控指标

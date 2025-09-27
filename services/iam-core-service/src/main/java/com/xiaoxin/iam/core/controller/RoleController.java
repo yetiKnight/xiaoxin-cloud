@@ -51,7 +51,7 @@ public class RoleController {
 
     @GetMapping("/{roleId}")
     @Operation(summary = "根据ID查询角色", description = "根据角色ID查询角色详细信息")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<RoleVO> getRoleById(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {
@@ -62,7 +62,7 @@ public class RoleController {
 
     @GetMapping("/name/{roleName}")
     @Operation(summary = "根据角色名称查询角色", description = "根据角色名称查询角色信息")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<Role> getRoleByRoleName(
             @Parameter(description = "角色名称", required = true)
             @PathVariable @NotEmpty(message = "角色名称不能为空") String roleName) {
@@ -72,7 +72,7 @@ public class RoleController {
 
     @GetMapping("/key/{roleKey}")
     @Operation(summary = "根据角色权限字符串查询角色", description = "根据角色权限字符串查询角色信息")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<Role> getRoleByRoleKey(
             @Parameter(description = "角色权限字符串", required = true)
             @PathVariable @NotEmpty(message = "角色权限字符串不能为空") String roleKey) {
@@ -82,7 +82,7 @@ public class RoleController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询角色列表", description = "分页查询角色列表")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<PageResult<RoleVO>> getRolePage(
             @Parameter(description = "页码", required = true)
             @RequestParam(defaultValue = "1") Integer current,
@@ -108,7 +108,7 @@ public class RoleController {
 
     @PostMapping
     @Operation(summary = "创建角色", description = "创建新角色")
-    @PreAuthorize("hasAuthority('role:create')")
+    @PreAuthorize("hasAuthority('role.create')")
     public Result<Boolean> createRole(
             @Parameter(description = "角色信息", required = true)
             @RequestBody @Valid RoleCreateDTO roleCreateDTO) {
@@ -119,7 +119,7 @@ public class RoleController {
 
     @PutMapping("/{roleId}")
     @Operation(summary = "更新角色", description = "更新角色信息")
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role.update')")
     public Result<Boolean> updateRole(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId,
@@ -133,7 +133,7 @@ public class RoleController {
 
     @DeleteMapping("/{roleId}")
     @Operation(summary = "删除角色", description = "根据ID删除角色")
-    @PreAuthorize("hasAuthority('role:delete')")
+    @PreAuthorize("hasAuthority('role.delete')")
     public Result<Boolean> deleteRole(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {
@@ -143,7 +143,7 @@ public class RoleController {
 
     @DeleteMapping("/batch")
     @Operation(summary = "批量删除角色", description = "批量删除角色")
-    @PreAuthorize("hasAuthority('role:delete')")
+    @PreAuthorize("hasAuthority('role.delete')")
     public Result<Boolean> deleteRoles(
             @Parameter(description = "角色ID列表", required = true)
             @RequestBody @NotEmpty(message = "角色ID列表不能为空") List<Long> roleIds) {
@@ -153,7 +153,7 @@ public class RoleController {
 
     @PutMapping("/{roleId}/status")
     @Operation(summary = "更新角色状态", description = "更新角色状态")
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role.update')")
     public Result<Boolean> updateRoleStatus(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId,
@@ -165,7 +165,7 @@ public class RoleController {
 
     @PutMapping("/{roleId}/permissions")
     @Operation(summary = "分配角色权限", description = "分配角色权限")
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role.update')")
     public Result<Boolean> assignRolePermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId,
@@ -177,7 +177,7 @@ public class RoleController {
 
     @PutMapping("/{roleId}/menus")
     @Operation(summary = "分配角色菜单", description = "分配角色菜单")
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role.update')")
     public Result<Boolean> assignRoleMenus(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId,
@@ -189,7 +189,7 @@ public class RoleController {
 
     @PutMapping("/{roleId}/depts")
     @Operation(summary = "分配角色部门", description = "分配角色部门")
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role.update')")
     public Result<Boolean> assignRoleDepts(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId,
@@ -201,7 +201,7 @@ public class RoleController {
 
     @GetMapping("/{roleId}/permissions")
     @Operation(summary = "查询角色权限", description = "查询角色权限列表")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Permission>> getRolePermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {
@@ -211,7 +211,7 @@ public class RoleController {
 
     @GetMapping("/{roleId}/menus")
     @Operation(summary = "查询角色菜单", description = "查询角色菜单列表")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Menu>> getRoleMenus(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {
@@ -221,7 +221,7 @@ public class RoleController {
 
     @GetMapping("/{roleId}/depts")
     @Operation(summary = "查询角色部门", description = "查询角色部门列表")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<List<com.xiaoxin.iam.core.entity.Dept>> getRoleDepts(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {
@@ -231,7 +231,7 @@ public class RoleController {
 
     @GetMapping("/{roleId}/users/count")
     @Operation(summary = "查询角色用户数量", description = "查询使用该角色的用户数量")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<Integer> countUsersByRoleId(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {
@@ -241,7 +241,7 @@ public class RoleController {
 
     @GetMapping("/{roleId}/depts/count")
     @Operation(summary = "查询角色部门数量", description = "查询使用该角色的部门数量")
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role.read')")
     public Result<Integer> countDeptsByRoleId(
             @Parameter(description = "角色ID", required = true)
             @PathVariable @NotNull(message = "角色ID不能为空") Long roleId) {

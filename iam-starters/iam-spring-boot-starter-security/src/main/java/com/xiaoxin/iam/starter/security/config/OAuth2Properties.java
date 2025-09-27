@@ -54,6 +54,20 @@ public class OAuth2Properties {
         private String scope;
 
         /**
+         * 获取格式化的作用域字符串
+         * 将逗号分隔的作用域转换为OAuth2标准的空格分隔格式
+         * 
+         * @return OAuth2标准格式的作用域字符串
+         */
+        public String getFormattedScope() {
+            if (scope == null || scope.trim().isEmpty()) {
+                return scope;
+            }
+            // 将逗号分隔转换为空格分隔，符合OAuth2 RFC 6749标准
+            return scope.replace(",", " ").replaceAll("\\s+", " ").trim();
+        }
+
+        /**
          * 连接超时时间（毫秒）
          */
         private int connectTimeout = 5000;

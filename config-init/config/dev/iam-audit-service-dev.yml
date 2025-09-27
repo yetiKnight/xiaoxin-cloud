@@ -26,7 +26,7 @@ oauth2:
     client-id: ${OAUTH2_CLIENT_ID:iam-audit-service}
     client-secret: ${OAUTH2_CLIENT_SECRET:iam-audit-secret-2024}
     token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
-    scope: ${OAUTH2_CLIENT_SCOPE:internal:read internal:write audit:read audit:write}
+    scope: ${OAUTH2_CLIENT_SCOPE:internal.read,internal.write,audit.read,audit.write}
     connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
     read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
     token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}

@@ -44,15 +44,15 @@ public class CoreSecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // 内部服务调用接口需要OAuth2认证和相应权限
                 .requestMatchers(CoreConstants.INTERNAL_USERS_PATH + "/**")
-                    .hasAnyAuthority("SCOPE_internal:read", "SCOPE_internal:write", "SCOPE_user:read", "SCOPE_user:write")
+                    .hasAnyAuthority("SCOPE_internal.read", "SCOPE_internal.write", "SCOPE_user.read", "SCOPE_user.write")
                 .requestMatchers(CoreConstants.INTERNAL_ROLES_PATH + "/**")
-                    .hasAnyAuthority("SCOPE_internal:read", "SCOPE_internal:write")
+                    .hasAnyAuthority("SCOPE_internal.read", "SCOPE_internal.write")
                 .requestMatchers(CoreConstants.INTERNAL_PERMISSIONS_PATH + "/**")
-                    .hasAnyAuthority("SCOPE_internal:read", "SCOPE_internal:write")
+                    .hasAnyAuthority("SCOPE_internal.read", "SCOPE_internal.write")
                 .requestMatchers(CoreConstants.INTERNAL_DEPTS_PATH + "/**")
-                    .hasAnyAuthority("SCOPE_internal:read", "SCOPE_internal:write")
+                    .hasAnyAuthority("SCOPE_internal.read", "SCOPE_internal.write")
                 .requestMatchers(CoreConstants.INTERNAL_MENUS_PATH + "/**")
-                    .hasAnyAuthority("SCOPE_internal:read", "SCOPE_internal:write")
+                    .hasAnyAuthority("SCOPE_internal.read", "SCOPE_internal.write")
                 
                 // 允许健康检查接口
                 .requestMatchers(CoreConstants.ACTUATOR_PATH).permitAll()
@@ -68,7 +68,7 @@ public class CoreSecurityConfig {
             // 配置OAuth2资源服务器 - JWT验证
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
-                    .jwkSetUri("http://iam-auth-service/oauth2/jwks")
+                    // JWK URI现在通过配置文件指定，解决循环依赖问题
                     .jwtAuthenticationConverter(jwtAuthenticationConverter())
                 )
             )

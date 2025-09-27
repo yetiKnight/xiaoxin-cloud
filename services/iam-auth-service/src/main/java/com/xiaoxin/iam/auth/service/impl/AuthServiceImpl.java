@@ -52,8 +52,14 @@ public class AuthServiceImpl {
         
         try {
             // 1. 查询用户信息
+            log.info("开始调用核心服务查询用户信息: username={}", username);
             Result<UserDTO> userResult = coreServiceClient.getUserByUsername(username);
+            log.info("核心服务调用完成: success={}, hasData={}", 
+                    userResult.isSuccess(), userResult.getData() != null);
+            
             if (!userResult.isSuccess() || userResult.getData() == null) {
+                log.error("查询用户失败: code={}, message={}", 
+                         userResult.getCode(), userResult.getMessage());
                 throw new AuthException(ResultCode.USER_NOT_FOUND.getCode(), "用户不存在");
             }
             
@@ -97,11 +103,13 @@ public class AuthServiceImpl {
                     .build();
                     
         } catch (AuthException e) {
-            log.error("用户登录失败: {}", username, e);
+            log.error("用户登录失败: username={}, code={}, message={}", 
+                     username, e.getCode(), e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            log.error("用户登录异常: {}", username, e);
-            throw new AuthException(ResultCode.ERROR.getCode(), "登录失败");
+            log.error("用户登录异常: username={}, exceptionType={}, message={}", 
+                     username, e.getClass().getSimpleName(), e.getMessage(), e);
+            throw new AuthException(ResultCode.ERROR.getCode(), "登录失败: " + e.getMessage());
         }
     }
     

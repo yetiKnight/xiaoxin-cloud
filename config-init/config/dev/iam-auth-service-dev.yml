@@ -18,7 +18,7 @@ spring:
             client-id: ${OAUTH2_SERVICE_CLIENT_ID:iam-auth-service}
             client-secret: ${OAUTH2_SERVICE_CLIENT_SECRET:auth-service-secret}
             authorization-grant-type: client_credentials
-            scope: ${OAUTH2_SERVICE_SCOPE:internal:read,internal:write,auth:read,auth:write}
+            scope: ${OAUTH2_SERVICE_SCOPE:internal.read,internal.write,user.read,user.write}
         provider:
           auth-service:
             token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
@@ -56,7 +56,7 @@ oauth2:
     client-id: ${OAUTH2_SERVICE_CLIENT_ID:iam-auth-service}
     client-secret: ${OAUTH2_SERVICE_CLIENT_SECRET:auth-service-secret}
     token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
-    scope: ${OAUTH2_SERVICE_SCOPE:internal:read internal:write auth:read auth:write}
+    scope: ${OAUTH2_SERVICE_SCOPE:internal.read,internal.write,user.read,user.write}
     connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
     read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
     token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
@@ -68,3 +68,9 @@ mybatis-plus:
 logging:
   level:
     com.xiaoxin.iam.auth: DEBUG
+    com.xiaoxin.iam.starter.security.oauth2: DEBUG
+    feign: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.springframework.http: DEBUG

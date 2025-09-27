@@ -6,6 +6,11 @@ spring:
     name: iam-core-service
   profiles:
     active: dev
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:8080/oauth2/jwks}
 
 management:
   endpoints:
@@ -16,7 +21,4 @@ management:
     health:
       show-details: when-authorized
 
-logging:
-  level:
-    com.xiaoxin.iam: debug
-    org.springframework.security: debug
+# Logging configuration is now managed by logback-spring.xml

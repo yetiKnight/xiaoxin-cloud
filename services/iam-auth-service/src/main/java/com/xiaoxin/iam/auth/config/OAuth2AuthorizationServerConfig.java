@@ -102,11 +102,13 @@ public class OAuth2AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://iam-gateway:8080/login/oauth2/code/gateway")
                 .postLogoutRedirectUri("http://iam-gateway:8080/")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .scope("internal:read")
-                .scope("internal:write")
-                .scope("gateway:route")
+                .scopes(scopes -> {
+                    scopes.add(OidcScopes.OPENID);
+                    scopes.add(OidcScopes.PROFILE);
+                    scopes.add("internal.read");
+                    scopes.add("internal.write");
+                    scopes.add("gateway.route");
+                })
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
@@ -124,10 +126,12 @@ public class OAuth2AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope("internal:read")
-                .scope("internal:write")
-                .scope("user:read")
-                .scope("user:write")
+                .scopes(scopes -> {
+                    scopes.add("internal.read");
+                    scopes.add("internal.write");
+                    scopes.add("user.read");
+                    scopes.add("user.write");
+                })
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
@@ -143,12 +147,14 @@ public class OAuth2AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope("internal:read")
-                .scope("internal:write")
-                .scope("user:read")
-                .scope("user:write")
-                .scope("role:read")
-                .scope("role:write")
+                .scopes(scopes -> {
+                    scopes.add("internal.read");
+                    scopes.add("internal.write");
+                    scopes.add("user.read");
+                    scopes.add("user.write");
+                    scopes.add("role.read");
+                    scopes.add("role.write");
+                })
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
@@ -164,10 +170,12 @@ public class OAuth2AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope("internal:read")
-                .scope("internal:write")
-                .scope("audit:read")
-                .scope("audit:write")
+                .scopes(scopes -> {
+                    scopes.add("internal.read");
+                    scopes.add("internal.write");
+                    scopes.add("audit.read");
+                    scopes.add("audit.write");
+                })
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
@@ -183,10 +191,12 @@ public class OAuth2AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope("internal:read")
-                .scope("internal:write")
-                .scope("system:read")
-                .scope("system:write")
+                .scopes(scopes -> {
+                    scopes.add("internal.read");
+                    scopes.add("internal.write");
+                    scopes.add("system.read");
+                    scopes.add("system.write");
+                })
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
@@ -207,12 +217,14 @@ public class OAuth2AuthorizationServerConfig {
                 .redirectUri("http://iam-frontend:8088/login/oauth2/code/iam")
                 .postLogoutRedirectUri("http://localhost:8088/")
                 .postLogoutRedirectUri("http://iam-frontend:8088/")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .scope("user:read")
-                .scope("user:write")
-                .scope("role:read")
-                .scope("role:write")
+                .scopes(scopes -> {
+                    scopes.add(OidcScopes.OPENID);
+                    scopes.add(OidcScopes.PROFILE);
+                    scopes.add("user.read");
+                    scopes.add("user.write");
+                    scopes.add("role.read");
+                    scopes.add("role.write");
+                })
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(true)
                         .requireProofKey(true)

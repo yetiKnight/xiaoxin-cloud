@@ -58,30 +58,30 @@ public class CoreConstants {
     /**
      * 权限常量
      */
-    public static final String USER_READ_PERMISSION = "user:read";
-    public static final String USER_CREATE_PERMISSION = "user:create";
-    public static final String USER_UPDATE_PERMISSION = "user:update";
-    public static final String USER_DELETE_PERMISSION = "user:delete";
+    public static final String USER_READ_PERMISSION = "user.read";
+    public static final String USER_CREATE_PERMISSION = "user.create";
+    public static final String USER_UPDATE_PERMISSION = "user.update";
+    public static final String USER_DELETE_PERMISSION = "user.delete";
     
-    public static final String ROLE_READ_PERMISSION = "role:read";
-    public static final String ROLE_CREATE_PERMISSION = "role:create";
-    public static final String ROLE_UPDATE_PERMISSION = "role:update";
-    public static final String ROLE_DELETE_PERMISSION = "role:delete";
+    public static final String ROLE_READ_PERMISSION = "role.read";
+    public static final String ROLE_CREATE_PERMISSION = "role.create";
+    public static final String ROLE_UPDATE_PERMISSION = "role.update";
+    public static final String ROLE_DELETE_PERMISSION = "role.delete";
     
-    public static final String PERMISSION_READ_PERMISSION = "permission:read";
-    public static final String PERMISSION_CREATE_PERMISSION = "permission:create";
-    public static final String PERMISSION_UPDATE_PERMISSION = "permission:update";
-    public static final String PERMISSION_DELETE_PERMISSION = "permission:delete";
+    public static final String PERMISSION_READ_PERMISSION = "permission.read";
+    public static final String PERMISSION_CREATE_PERMISSION = "permission.create";
+    public static final String PERMISSION_UPDATE_PERMISSION = "permission.update";
+    public static final String PERMISSION_DELETE_PERMISSION = "permission.delete";
     
-    public static final String DEPT_READ_PERMISSION = "dept:read";
-    public static final String DEPT_CREATE_PERMISSION = "dept:create";
-    public static final String DEPT_UPDATE_PERMISSION = "dept:update";
-    public static final String DEPT_DELETE_PERMISSION = "dept:delete";
+    public static final String DEPT_READ_PERMISSION = "dept.read";
+    public static final String DEPT_CREATE_PERMISSION = "dept.create";
+    public static final String DEPT_UPDATE_PERMISSION = "dept.update";
+    public static final String DEPT_DELETE_PERMISSION = "dept.delete";
     
-    public static final String MENU_READ_PERMISSION = "menu:read";
-    public static final String MENU_CREATE_PERMISSION = "menu:create";
-    public static final String MENU_UPDATE_PERMISSION = "menu:update";
-    public static final String MENU_DELETE_PERMISSION = "menu:delete";
+    public static final String MENU_READ_PERMISSION = "menu.read";
+    public static final String MENU_CREATE_PERMISSION = "menu.create";
+    public static final String MENU_UPDATE_PERMISSION = "menu.update";
+    public static final String MENU_DELETE_PERMISSION = "menu.delete";
     
     /**
      * 数据权限常量
