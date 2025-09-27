@@ -1,5 +1,8 @@
 ---
+description: "Configuration file development standards"
 globs: "*.yml,*.yaml,*.properties"
+priority: 1000
+type: "Always Apply"
 ---
 
 # 配置文件开发规范

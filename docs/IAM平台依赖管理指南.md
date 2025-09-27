@@ -81,7 +81,7 @@ iam-dependencies/
 ### 2. 数据库相关
 - **MySQL**: 数据库驱动，版本8.0.33
 - **MyBatis-Plus**: ORM框架，版本3.5.4.1
-- **Druid**: 连接池，版本1.2.20
+- **HikariCP**: 连接池，Spring Boot默认连接池
 
 ### 3. 工具类库
 - **Hutool**: Java工具库，版本5.8.22

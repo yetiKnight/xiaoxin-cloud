@@ -71,10 +71,41 @@
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
         </dependency>
 
+        <!-- Sentinel Nacos DataSource -->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-datasource-nacos</artifactId>
+        </dependency>
+
         <!-- Spring Boot Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- IAM Spring Boot Starter Security -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- IAM Spring Boot Starter Web -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- IAM Spring Boot Starter Data -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-spring-boot-starter-data</artifactId>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Spring Boot Test -->

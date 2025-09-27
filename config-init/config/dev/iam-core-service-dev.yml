@@ -1,56 +1,30 @@
-db:
-  driver-class-name: com.mysql.cj.jdbc.Driver
-  url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_core?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-  username: iam_core
-  password: 7YDCq@TfC_L9vgP
+spring:
+  datasource:
+    url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_core?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: iam_core
+    password: 7YDCq@TfC_L9vgP
 
-redis:
-  database:
-    core: 2
+  data:
+    redis:
+      database: 2
 
-business:
-  user:
-    default-password: 123456
-    password-expire-days: 90
-    max-login-attempts: 5
-    lock-time-minutes: 30
-  role:
-    super-admin: SUPER_ADMIN
-    admin: ADMIN
-    user: USER
-  permission:
-    cache-expire-seconds: 3600
-    refresh-interval-seconds: 1800
+oauth2:
+  client:
+    enabled: ${OAUTH2_CLIENT_ENABLED:true}
+    client-id: ${OAUTH2_CLIENT_ID:iam-core-service}
+    client-secret: ${OAUTH2_CLIENT_SECRET:core-service-secret}
+    token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
+    scope: ${OAUTH2_CLIENT_SCOPE:internal:read internal:write user:read user:write role:read role:write}
+    connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
+    read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
+    token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
+    max-retries: ${OAUTH2_MAX_RETRIES:3}
 
-data-scope:
-  enabled: true
-  default-scope: DEPT_AND_CHILD
-  scopes:
-    ALL: 1
-    CUSTOM: 2
-    DEPT_AND_CHILD: 3
-    DEPT_ONLY: 4
-    SELF_ONLY: 5
+mybatis-plus:
+  type-aliases-package: com.xiaoxin.iam.core.entity
 
-file:
-  upload:
-    path: /data/uploads/
-    max-size: 10MB
-    allowed-types:
-      - jpg
-      - jpeg
-      - png
-      - gif
-      - pdf
-      - doc
-      - docx
-      - xls
-      - xlsx
-
-export:
-  max-rows: 10000
-  temp-path: /data/temp/
-  
-import:
-  max-rows: 5000
-  temp-path: /data/temp/
+logging:
+  level:
+    "[com.xiaoxin.iam.core]": ${CORE_LOG_LEVEL:info}
+    "[org.springframework.security]": ${SECURITY_LOG_LEVEL:info}
+    "[org.springframework.security.oauth2]": ${OAUTH2_LOG_LEVEL:debug}

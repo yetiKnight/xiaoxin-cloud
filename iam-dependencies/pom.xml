@@ -46,8 +46,7 @@
         <mysql.version>8.0.33</mysql.version>
         <postgresql.version>42.7.4</postgresql.version>
         <h2.version>2.2.224</h2.version>
-        <druid.version>1.2.20</druid.version>
-        <mybatis-plus.version>3.5.4.1</mybatis-plus.version>
+        <mybatis-plus.version>3.5.14</mybatis-plus.version>
         <mybatis-plus-generator.version>3.5.4.1</mybatis-plus-generator.version>
         <dynamic-datasource.version>4.2.0</dynamic-datasource.version>
         <p6spy.version>3.9.1</p6spy.version>
@@ -225,17 +224,17 @@
                 <version>${h2.version}</version>
             </dependency>
             
-            <!-- Druid Connection Pool -->
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-starter</artifactId>
-                <version>${druid.version}</version>
-            </dependency>
             
-            <!-- MyBatis Plus -->
+            <!-- MyBatis Plus for Spring Boot 3 -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
             

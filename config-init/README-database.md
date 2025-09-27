@@ -10,10 +10,11 @@
 
 | 数据库名 | 服务 | 端口 | 用途 | Redis库 |
 |---------|------|------|------|---------|
+| `-` | iam-gateway | 8080 | 网关服务 | 1 |
 | `iam_core` | iam-core-service | 8082 | 核心业务数据 | 2 |
-| `iam_auth` | iam-auth-service | 8081 | 认证授权数据 | 1 |
+| `iam_auth` | iam-auth-service | 8081 | 认证授权数据 | 3 |
 | `iam_system` | iam-system-service | 8084 | 系统配置数据 | 4 |
-| `iam_audit` | iam-audit-service | 8083 | 审计日志数据 | 3 |
+| `iam_audit` | iam-audit-service | 8083 | 审计日志数据 | 5 |
 
 ### 数据存储策略
 
@@ -31,8 +32,7 @@ config-init/config/
 ├── iam-core-service-dev.yml         # 核心服务配置
 ├── iam-system-service-dev.yml       # 系统服务配置
 ├── iam-audit-service-dev.yml        # 审计服务配置
-├── iam-gateway-dev.yml              # 网关配置
-└── database-monitoring.yml          # 数据库监控配置
+└── iam-gateway-dev.yml              # 网关配置
 ```
 
 ## 数据库连接配置
@@ -53,27 +53,17 @@ db:
 ```yaml
 spring:
   datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    druid:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
       # 连接池核心参数
-      initial-size: 10              # 初始连接数
-      max-active: 100              # 最大连接数
-      min-idle: 10                 # 最小空闲连接数
-      max-wait: 60000              # 获取连接超时时间(ms)
-      
-      # 连接验证
-      validation-query: SELECT 1 FROM DUAL
-      test-while-idle: true        # 空闲时验证
-      test-on-borrow: false        # 获取时验证
-      test-on-return: false        # 归还时验证
-      
-      # 连接回收
-      time-between-eviction-runs-millis: 60000     # 检测间隔(ms)
-      min-evictable-idle-time-millis: 300000       # 最小空闲时间(ms)
-      
-      # 预处理语句池
-      pool-prepared-statements: true
-      max-pool-prepared-statement-per-connection-size: 20
+      minimum-idle: 10             # 最小空闲连接数
+      maximum-pool-size: 100       # 最大连接数
+      auto-commit: true            # 自动提交
+      idle-timeout: 300000         # 空闲超时时间(ms)
+      max-lifetime: 1800000         # 连接最大生命周期(ms)
+      connection-timeout: 30000    # 连接超时时间(ms)
+      connection-test-query: SELECT 1  # 连接测试查询
+      pool-name: IamPlatformHikariCP   # 连接池名称
 ```
 
 ## Redis配置
@@ -142,19 +132,19 @@ export NACOS_NAMESPACE=dev
 
 ## 数据库监控
 
-### Druid监控面板
+### HikariCP监控
 
-- **访问地址**: http://localhost:8082/druid/
-- **用户名**: admin
-- **密码**: 123456
+- **监控端点**: http://localhost:8082/actuator/metrics/hikaricp.connections
+- **健康检查**: http://localhost:8082/actuator/health
+- **Prometheus指标**: http://localhost:8082/actuator/prometheus
 
 ### 监控指标
 
 #### 连接池指标
-- 活跃连接数
-- 空闲连接数
-- 等待连接数
-- 连接获取次数
+- 活跃连接数 (hikaricp.connections.active)
+- 空闲连接数 (hikaricp.connections.idle)
+- 等待连接数 (hikaricp.connections.pending)
+- 连接获取次数 (hikaricp.connections.acquisition)
 
 #### SQL执行指标
 - SQL执行次数
@@ -170,31 +160,35 @@ export NACOS_NAMESPACE=dev
 ### 告警配置
 
 ```yaml
-monitoring:
-  alerts:
-    connection-pool:
-      active-rate-threshold: 0.8    # 活跃连接比例告警
-      wait-count-threshold: 10      # 等待连接数告警
-    sql-performance:
-      slow-sql-threshold: 2000      # 慢SQL阈值(ms)
-      error-rate-threshold: 0.01    # SQL错误率告警
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 ```
 
 ## 性能优化建议
 
 ### 1. 连接池优化
 
-- **连接数设置**: max-active = CPU核数 × 2
-- **空闲连接**: min-idle = initial-size
-- **连接验证**: 启用test-while-idle，设置合理检测间隔
-- **连接回收**: 设置min-evictable-idle-time-millis为5分钟
+- **连接数设置**: maximum-pool-size = CPU核数 × 2
+- **空闲连接**: minimum-idle = 10
+- **连接验证**: 启用connection-test-query
+- **连接回收**: 设置idle-timeout为5分钟
 
 ### 2. SQL优化
 
-- **慢SQL监控**: 设置slow-sql-millis为2000ms
-- **预处理语句**: 启用pool-prepared-statements
+- **慢SQL监控**: 通过MyBatis-Plus配置
 - **批量操作**: 使用批处理减少网络开销
 - **索引优化**: 定期分析慢SQL并优化索引
+- **查询优化**: 避免N+1查询，使用JOIN优化
 
 ### 3. 事务优化
 

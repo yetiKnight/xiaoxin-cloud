@@ -39,3 +39,17 @@ spring:
 logging:
   file:
     name: logs/${spring.application.name}-${spring.profiles.active}.log
+  level:
+    com.xiaoxin.iam.audit: debug
+    org.springframework.security: debug
+    org.springframework.web: debug
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always

@@ -1,67 +1,29 @@
-db:
-  driver-class-name: com.mysql.cj.jdbc.Driver
-  url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-  username: iam_system
-  password: M^3eA7_rX+fB
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8}
+    username: ${DB_USERNAME:iam_system}
+    password: ${DB_PASSWORD:vB#3nK$M9qL5w@C}
 
-redis:
-  database:
-    system: 4
+  data:
+    redis:
+      database: 5
 
-dict:
-  cache-enabled: true
-  cache-expire-seconds: 3600
-  refresh-interval-seconds: 1800
+oauth2:
+  client:
+    enabled: ${OAUTH2_CLIENT_ENABLED:true}
+    client-id: ${OAUTH2_CLIENT_ID:iam-system-service}
+    client-secret: ${OAUTH2_CLIENT_SECRET:iam-system-secret-2024}
+    token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
+    scope: ${OAUTH2_CLIENT_SCOPE:internal:read internal:write system:read system:write}
+    connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
+    read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
+    token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
+    max-retries: ${OAUTH2_MAX_RETRIES:3}
 
-config:
-  cache-enabled: true
-  cache-expire-seconds: 7200
-  refresh-interval-seconds: 3600
-  encrypt-keys:
-    - password
-    - secret
-    - key
+mybatis-plus:
+  type-aliases-package: com.xiaoxin.iam.system.entity
 
-notification:
-  message:
-    enabled: true
-    max-unread: 100
-    auto-read-days: 30
-  email:
-    enabled: true
-    host: smtp.163.com
-    port: 465
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    from: ${MAIL_FROM:noreply@xiaoxin.com}
-    ssl: true
-    async: true
-    retry-times: 3
-  sms:
-    enabled: true
-    provider: aliyun
-    aliyun:
-      access-key: ${SMS_ACCESS_KEY:}
-      access-secret: ${SMS_ACCESS_SECRET:}
-      sign-name: ${SMS_SIGN_NAME:xiaoxin-cloud}
-    async: true
-    retry-times: 3
-  wechat:
-    enabled: false
-    corp-id: ${WECHAT_CORP_ID:}
-    agent-id: ${WECHAT_AGENT_ID:}
-    secret: ${WECHAT_SECRET:}
-
-scheduler:
-  enabled: true
-  thread-pool-size: 10
-  await-termination-seconds: 30
-  
-monitor:
-  enabled: true
-  metrics:
-    enabled: true
-    export-interval-seconds: 60
-  health-check:
-    enabled: true
-    check-interval-seconds: 30
+logging:
+  level:
+    "[com.xiaoxin.iam.system]": ${SYSTEM_LOG_LEVEL:info}
+    "[org.springframework.security]": ${SECURITY_LOG_LEVEL:info}

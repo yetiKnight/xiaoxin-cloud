@@ -1,100 +1,39 @@
-# IAM Authentication Service Configuration
-
 spring:
-  cloud:
-    sentinel:
-      transport:
-        port: 8718
-        dashboard: ${SENTINEL_DASHBOARD:localhost:8181}
-      datasource:
-        flow:
-          nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-            namespace: ${NACOS_NAMESPACE:dev}
-            dataId: iam-auth-service-flow-rules
-            groupId: SENTINEL_GROUP
-            rule-type: flow
-  
-  # Datasource Configuration
   datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    druid:
-      driver-class-name: ${db.driver-class-name}
-      url: ${db.url}
-      username: ${db.username}
-      password: ${db.password}
-      initial-size: 10
-      max-active: 100
-      min-idle: 10
-      max-wait: 60000
-      pool-prepared-statements: true
-      max-pool-prepared-statement-per-connection-size: 20
-      time-between-eviction-runs-millis: 60000
-      min-evictable-idle-time-millis: 300000
-      validation-query: SELECT 1 FROM DUAL
-      test-while-idle: true
-      test-on-borrow: false
-      test-on-return: false
-      stat-view-servlet:
-        enabled: true
-        url-pattern: /druid/*
-      filter:
-        stat:
-          enabled: true
-          log-slow-sql: true
-          slow-sql-millis: 1000
-          merge-sql: false
-        wall:
-          enabled: true
-          config:
-            multi-statement-allow: true
+    url: ${DB_URL:jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_auth?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8}
+    username: ${DB_USERNAME:iam_auth}
+    password: ${DB_PASSWORD:yP!6sN$V4gH2q@D}
 
-  # Redis Configuration (Auth service dedicated database)
   data:
     redis:
-      database: ${redis.database.auth}
+      database: 3
 
-# MyBatis Plus Configuration
-mybatis-plus:
-  mapper-locations: classpath*:mapper/**/*Mapper.xml
-  type-aliases-package: com.xiaoxin.iam.auth.entity
-  configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: false
-    call-setters-on-nulls: true
-    jdbc-type-for-null: 'null'
-  global-config:
-    db-config:
-      id-type: ASSIGN_ID
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-
-# Authentication Service Specific Logging Configuration
-logging:
-  level:
-    com.xiaoxin.iam.auth: debug
-    org.springframework.security: debug
-
-db:
-  driver-class-name: com.mysql.cj.jdbc.Driver
-  url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_auth?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-  username: iam_auth
-  password: yP!6sN$V4gH2q@D
-
-redis:
-  database:
-    auth: 2
-    session: 3
-
-oauth2:
-  authorization-server:
-    issuer: http://localhost:8081
-    client:
-      iam-web-client:
+  # OAuth2 Client Configuration (for consuming tokens when calling other services)
+  # Using Spring Security OAuth2 Client standard format
+  security:
+    oauth2:
+      client:
         registration:
-          client-id: iam-web-client
-          client-secret: "{noop}iam-web-secret"
+          auth-service:
+            client-id: ${OAUTH2_SERVICE_CLIENT_ID:iam-auth-service}
+            client-secret: ${OAUTH2_SERVICE_CLIENT_SECRET:auth-service-secret}
+            authorization-grant-type: client_credentials
+            scope: ${OAUTH2_SERVICE_SCOPE:internal:read,internal:write,auth:read,auth:write}
+        provider:
+          auth-service:
+            token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
+
+# OAuth2 Configuration
+oauth2:
+  # Authorization Server Configuration (for issuing tokens)
+  authorization-server:
+    issuer: ${OAUTH2_ISSUER:http://localhost:8081}
+    client:
+      # Frontend client configuration (corresponding to iam-client in database)
+      iam-client:
+        registration:
+          client-id: ${OAUTH2_WEB_CLIENT_ID:iam-client}
+          client-secret: ${OAUTH2_WEB_CLIENT_SECRET:"{noop}iam-secret"}
           client-authentication-methods:
             - client_secret_basic
             - client_secret_post
@@ -103,46 +42,29 @@ oauth2:
             - refresh_token
             - client_credentials
           redirect-uris:
-            - http://localhost:8088/login/oauth2/code/iam
-            - http://localhost:8088/authorized
+            - ${OAUTH2_REDIRECT_URI_1:http://localhost:3000/callback}
+            - ${OAUTH2_REDIRECT_URI_2:http://localhost:8088/login/oauth2/code/iam}
+            - ${OAUTH2_REDIRECT_URI_3:http://localhost:8088/authorized}
           scopes:
             - read
             - write
-            - openid
-            - profile
         require-authorization-consent: true
 
-third-party:
-  wechat:
-    app-id: ${WECHAT_APP_ID:}
-    app-secret: ${WECHAT_APP_SECRET:}
-    redirect-uri: http://localhost:8081/auth/callback/wechat
-  dingtalk:
-    app-id: ${DINGTALK_APP_ID:}
-    app-secret: ${DINGTALK_APP_SECRET:}
-    redirect-uri: http://localhost:8081/auth/callback/dingtalk
-  github:
-    client-id: ${GITHUB_CLIENT_ID:}
-    client-secret: ${GITHUB_CLIENT_SECRET:}
-    redirect-uri: http://localhost:8081/auth/callback/github
+  # Custom OAuth2 client configuration for Feign interceptor
+  client:
+    enabled: ${OAUTH2_CLIENT_ENABLED:true}
+    client-id: ${OAUTH2_SERVICE_CLIENT_ID:iam-auth-service}
+    client-secret: ${OAUTH2_SERVICE_CLIENT_SECRET:auth-service-secret}
+    token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
+    scope: ${OAUTH2_SERVICE_SCOPE:internal:read internal:write auth:read auth:write}
+    connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
+    read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
+    token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
+    max-retries: ${OAUTH2_MAX_RETRIES:3}
 
-captcha:
-  enabled: true
-  type: math
-  expire: 300
-  
-sms:
-  provider: aliyun
-  aliyun:
-    access-key: ${SMS_ACCESS_KEY:}
-    access-secret: ${SMS_ACCESS_SECRET:}
-    sign-name: ${SMS_SIGN_NAME:xiaoxin-cloud}
-    template-code: SMS_123456789
+mybatis-plus:
+  type-aliases-package: com.xiaoxin.iam.auth.entity
 
-mail:
-  host: smtp.163.com
-  port: 465
-  username: ${MAIL_USERNAME:}
-  password: ${MAIL_PASSWORD:}
-  from: ${MAIL_FROM:noreply@xiaoxin.com}
-  ssl: true
+logging:
+  level:
+    com.xiaoxin.iam.auth: DEBUG

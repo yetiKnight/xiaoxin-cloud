@@ -65,6 +65,12 @@
         
         <!-- ==================== 序列化和工具类 ==================== -->
         
+        <!-- Swagger/OpenAPI 3 - API文档 -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+        
         <!-- Jackson Core - JSON处理 -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

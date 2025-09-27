@@ -66,6 +66,13 @@ public class RequestLoggingFilter extends OncePerRequestFilter implements Ordere
         }
 
         long startTime = System.currentTimeMillis();
+        long startMemory = getMemoryUsage();
+        
+        // 生成请求ID
+        String requestId = generateRequestId(request);
+        if (webProperties.getRequestLog().isEnableRequestId()) {
+            response.setHeader(webProperties.getRequestLog().getRequestIdHeaderName(), requestId);
+        }
         
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
@@ -73,14 +80,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter implements Ordere
         try {
             filterChain.doFilter(requestWrapper, responseWrapper);
         } finally {
-            logRequest(requestWrapper, responseWrapper, System.currentTimeMillis() - startTime);
+            long duration = System.currentTimeMillis() - startTime;
+            long endMemory = getMemoryUsage();
+            logRequest(requestWrapper, responseWrapper, duration, startMemory, endMemory, requestId);
             responseWrapper.copyBodyToResponse();
         }
     }
 
     private void logRequest(ContentCachingRequestWrapper request, 
                           ContentCachingResponseWrapper response, 
-                          long duration) {
+                          long duration, long startMemory, long endMemory, String requestId) {
         
         WebProperties.RequestLog requestLog = webProperties.getRequestLog();
         
@@ -94,8 +103,37 @@ public class RequestLoggingFilter extends OncePerRequestFilter implements Ordere
         }
         
         logBuilder.append(" - 状态: ").append(response.getStatus());
-        logBuilder.append(", 耗时: ").append(duration).append("ms");
-        logBuilder.append(", 客户端: ").append(getClientIpAddress(request));
+        
+        // 记录响应时间
+        if (requestLog.isIncludeResponseTime()) {
+            logBuilder.append(", 耗时: ").append(duration).append("ms");
+        }
+        
+        // 记录客户端IP
+        if (requestLog.isIncludeIpAddress()) {
+            logBuilder.append(", 客户端: ").append(getClientIpAddress(request));
+        }
+        
+        // 记录请求ID
+        if (requestLog.isEnableRequestId()) {
+            logBuilder.append(", 请求ID: ").append(requestId);
+        }
+        
+        // 记录用户代理
+        if (requestLog.isIncludeUserAgent()) {
+            String userAgent = request.getHeader("User-Agent");
+            if (userAgent != null) {
+                logBuilder.append(", 用户代理: ").append(userAgent);
+            }
+        }
+        
+        // 记录引用页面
+        if (requestLog.isIncludeReferer()) {
+            String referer = request.getHeader("Referer");
+            if (referer != null) {
+                logBuilder.append(", 引用页面: ").append(referer);
+            }
+        }
         
         // 记录请求头
         if (requestLog.isIncludeHeaders()) {
@@ -121,10 +159,55 @@ public class RequestLoggingFilter extends OncePerRequestFilter implements Ordere
             }
         }
         
-        if (duration > 1000) {
+        // 记录内存使用
+        if (requestLog.isIncludeMemoryUsage()) {
+            long memoryUsed = endMemory - startMemory;
+            logBuilder.append(", 内存使用: ").append(memoryUsed).append(" bytes");
+        }
+        
+        // 记录线程信息
+        if (requestLog.isIncludeThreadInfo()) {
+            logBuilder.append(", 线程: ").append(Thread.currentThread().getName());
+        }
+        
+        // 记录用户信息
+        if (requestLog.isIncludeUserInfo()) {
+            String user = request.getRemoteUser();
+            if (user != null) {
+                logBuilder.append(", 用户: ").append(user);
+            }
+        }
+        
+        // 记录会话信息
+        if (requestLog.isIncludeSessionInfo()) {
+            String sessionId = request.getSession(false) != null ? request.getSession().getId() : "无会话";
+            logBuilder.append(", 会话: ").append(sessionId);
+        }
+        
+        // 根据配置决定日志级别
+        String logLevel = requestLog.getLogLevel().toUpperCase();
+        boolean isError = response.getStatus() >= 400;
+        boolean isSlow = duration > requestLog.getSlowRequestThreshold();
+        
+        if (isError && requestLog.isLogErrorRequests()) {
+            log.error(logBuilder.toString());
+        } else if (isSlow && requestLog.isLogSlowRequests()) {
             log.warn(logBuilder.toString());
         } else {
-            log.info(logBuilder.toString());
+            switch (logLevel) {
+                case "DEBUG":
+                    log.debug(logBuilder.toString());
+                    break;
+                case "WARN":
+                    log.warn(logBuilder.toString());
+                    break;
+                case "ERROR":
+                    log.error(logBuilder.toString());
+                    break;
+                default:
+                    log.info(logBuilder.toString());
+                    break;
+            }
         }
     }
 
@@ -184,14 +267,43 @@ public class RequestLoggingFilter extends OncePerRequestFilter implements Ordere
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.startsWith("/actuator/") ||
-               uri.startsWith("/static/") ||
-               uri.startsWith("/css/") ||
-               uri.startsWith("/js/") ||
-               uri.startsWith("/images/") ||
-               uri.startsWith("/favicon.ico") ||
-               uri.startsWith("/doc.html") ||
-               uri.startsWith("/swagger-ui/") ||
-               uri.startsWith("/v3/api-docs/");
+        WebProperties.RequestLog requestLog = webProperties.getRequestLog();
+        
+        // 检查排除路径
+        for (String pattern : requestLog.getExcludePathPatterns()) {
+            if (uri.matches(pattern.replace("**", ".*"))) {
+                return true;
+            }
+        }
+        
+        // 检查包含路径
+        boolean shouldInclude = false;
+        for (String pattern : requestLog.getIncludePathPatterns()) {
+            if (uri.matches(pattern.replace("**", ".*"))) {
+                shouldInclude = true;
+                break;
+            }
+        }
+        
+        return !shouldInclude;
+    }
+
+    /**
+     * 生成请求ID
+     */
+    private String generateRequestId(HttpServletRequest request) {
+        String existingId = request.getHeader(webProperties.getRequestLog().getRequestIdHeaderName());
+        if (existingId != null && !existingId.isEmpty()) {
+            return existingId;
+        }
+        return java.util.UUID.randomUUID().toString();
+    }
+
+    /**
+     * 获取内存使用量
+     */
+    private long getMemoryUsage() {
+        Runtime runtime = Runtime.getRuntime();
+        return runtime.totalMemory() - runtime.freeMemory();
     }
 }

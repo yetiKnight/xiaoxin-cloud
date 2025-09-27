@@ -93,7 +93,6 @@ import_config() {
 
 # 配置文件列表
 declare -A configs=(
-    ["database-monitoring.yml"]="database-monitoring.yml"
     ["iam-auth-service-dev.yml"]="iam-auth-service-dev.yml"
     ["iam-core-service-dev.yml"]="iam-core-service-dev.yml"
     ["iam-system-service-dev.yml"]="iam-system-service-dev.yml"

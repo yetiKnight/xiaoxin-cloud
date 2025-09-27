@@ -1,5 +1,3 @@
-# IAM Authentication Service Configuration
-# Nacos connection must be configured locally, cannot be loaded from Nacos
 server:
   port: 8081
 
@@ -7,35 +5,29 @@ spring:
   application:
     name: iam-auth-service
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-  
-  # Import configuration from Nacos config center
-  config:
-    import:
-      - optional:nacos:iam-common.yml?refresh=true
-      - optional:nacos:iam-auth-service-${spring.profiles.active}.yml?refresh=true
-  
-  cloud:
-    nacos:
-      # Service registration and discovery configuration
-      discovery:
-        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-        namespace: ${NACOS_NAMESPACE:dev}
-        group: IAM_GROUP
-        cluster-name: ${spring.profiles.active}
-        metadata:
-          version: ${project.version:1.0.0}
-          zone: ${app.zone:default}
-      
-      # Config center connection
-      config:
-        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
-        namespace: ${NACOS_NAMESPACE:dev}
-        group: IAM_GROUP
-        file-extension: yml
-        refresh-enabled: true
+    active: dev
+  # OAuth2 client configuration moved to Nacos config center
+  # See: config-init/config/dev/iam-auth-service-dev.yml for OAuth2 settings
+
+# Management endpoints configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 # Local logging configuration (not dependent on Nacos)
 logging:
+  level:
+    "[com.xiaoxin.iam]": debug
+    "[org.springframework.security]": debug
+    "[feign]": debug
   file:
     name: logs/${spring.application.name}-${spring.profiles.active}.log

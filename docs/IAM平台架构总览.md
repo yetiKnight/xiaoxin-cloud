@@ -207,7 +207,7 @@ iam-platform/
 **数据访问Starter**
 - MyBatis Plus
 - MySQL连接
-- Druid连接池
+- HikariCP连接池
 - Redis数据访问
 - MongoDB支持
 - Elasticsearch支持

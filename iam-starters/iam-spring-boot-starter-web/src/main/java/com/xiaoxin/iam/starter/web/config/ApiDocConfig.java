@@ -55,7 +55,7 @@ public class ApiDocConfig {
         
         log.info("IAM平台API文档配置已启用: {}", apiDoc.getTitle());
         
-        return new OpenAPI()
+        OpenAPI openAPI = new OpenAPI()
                 .info(new Info()
                         .title(apiDoc.getTitle())
                         .description(apiDoc.getDescription())
@@ -66,12 +66,67 @@ public class ApiDocConfig {
                                 .url(apiDoc.getContact().getUrl()))
                         .license(new License()
                                 .name(apiDoc.getLicense().getName())
-                                .url(apiDoc.getLicense().getUrl())))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-                .schemaRequirement("bearerAuth", new SecurityScheme()
-                        .type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer")
-                        .bearerFormat("JWT")
-                        .description("JWT认证令牌"));
+                                .url(apiDoc.getLicense().getUrl())));
+        
+        // 添加服务器信息
+        if (apiDoc.getServers() != null && !apiDoc.getServers().isEmpty()) {
+            apiDoc.getServers().forEach(server -> {
+                openAPI.addServersItem(new io.swagger.v3.oas.models.servers.Server()
+                        .url(server.getUrl())
+                        .description(server.getDescription()));
+            });
+        }
+        
+        // 添加标签信息
+        if (apiDoc.getTags() != null && !apiDoc.getTags().isEmpty()) {
+            apiDoc.getTags().forEach(tag -> {
+                openAPI.addTagsItem(new io.swagger.v3.oas.models.tags.Tag()
+                        .name(tag.getName())
+                        .description(tag.getDescription()));
+            });
+        }
+        
+        // 添加安全配置
+        addSecuritySchemes(openAPI, apiDoc.getSecurity());
+        
+        return openAPI;
+    }
+
+    /**
+     * 添加安全配置
+     */
+    private void addSecuritySchemes(OpenAPI openAPI, WebProperties.ApiDoc.Security security) {
+        if (security.isEnableJwt()) {
+            openAPI.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+            openAPI.schemaRequirement("bearerAuth", new SecurityScheme()
+                    .type(SecurityScheme.Type.HTTP)
+                    .scheme(security.getJwt().getScheme())
+                    .bearerFormat(security.getJwt().getBearerFormat())
+                    .description(security.getJwt().getDescription()));
+        }
+        
+        if (security.isEnableApiKey()) {
+            openAPI.addSecurityItem(new SecurityRequirement().addList("apiKeyAuth"));
+            openAPI.schemaRequirement("apiKeyAuth", new SecurityScheme()
+                    .type(SecurityScheme.Type.APIKEY)
+                    .in(security.getApiKey().getIn().equals("header") ? 
+                            SecurityScheme.In.HEADER : SecurityScheme.In.QUERY)
+                    .name(security.getApiKey().getKeyName())
+                    .description(security.getApiKey().getDescription()));
+        }
+        
+        if (security.isEnableOAuth2()) {
+            openAPI.addSecurityItem(new SecurityRequirement().addList("oauth2Auth"));
+            openAPI.schemaRequirement("oauth2Auth", new SecurityScheme()
+                    .type(SecurityScheme.Type.OAUTH2)
+                    .description(security.getOauth2().getDescription())
+                    .flows(new io.swagger.v3.oas.models.security.OAuthFlows()
+                            .authorizationCode(new io.swagger.v3.oas.models.security.OAuthFlow()
+                                    .authorizationUrl(security.getOauth2().getAuthorizationUrl())
+                                    .tokenUrl(security.getOauth2().getTokenUrl())
+                                    .scopes(new io.swagger.v3.oas.models.security.Scopes()
+                                            .addString("read", "读取权限")
+                                            .addString("write", "写入权限")))));
+        }
     }
 }

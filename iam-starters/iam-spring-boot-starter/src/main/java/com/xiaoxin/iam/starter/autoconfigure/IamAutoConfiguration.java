@@ -16,13 +16,6 @@
 
 package com.xiaoxin.iam.starter.autoconfigure;
 
-import com.xiaoxin.iam.starter.aspect.OperationLogAspect;
-import com.xiaoxin.iam.starter.aspect.PerformanceMonitorAspect;
-import com.xiaoxin.iam.starter.config.IamCoreProperties;
-import com.xiaoxin.iam.starter.config.IamProperties;
-import com.xiaoxin.iam.starter.config.TaskExecutorConfig;
-import com.xiaoxin.iam.starter.web.GlobalExceptionHandler;
-import com.xiaoxin.iam.starter.web.IamResponseBodyAdvice;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,6 +24,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import com.xiaoxin.iam.starter.aspect.OperationLogAspect;
+import com.xiaoxin.iam.starter.aspect.PerformanceMonitorAspect;
+import com.xiaoxin.iam.starter.config.IamCoreProperties;
+import com.xiaoxin.iam.starter.config.IamProperties;
+import com.xiaoxin.iam.starter.config.TaskExecutorConfig;
+import com.xiaoxin.iam.starter.web.IamResponseBodyAdvice;
 
 /**
  * IAM平台自动配置
@@ -43,16 +43,6 @@ import org.springframework.context.annotation.Import;
 @EnableConfigurationProperties({IamProperties.class, IamCoreProperties.class})
 @Import(TaskExecutorConfig.class)
 public class IamAutoConfiguration {
-
-    /**
-     * 全局异常处理器
-     */
-    @Bean
-    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-    @ConditionalOnMissingBean
-    public GlobalExceptionHandler globalExceptionHandler() {
-        return new GlobalExceptionHandler();
-    }
 
     /**
      * 统一响应体处理器

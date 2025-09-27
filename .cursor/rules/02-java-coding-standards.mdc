@@ -1,5 +1,8 @@
 ---
-globs: *.java
+description: "Java coding standards and best practices"
+globs: "*.java"
+priority: 900
+type: "Always Apply"
 ---
 
 # Java代码开发规范

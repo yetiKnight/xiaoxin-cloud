@@ -134,6 +134,10 @@ public enum ResultCode implements IResult {
     USER_LOCKED(2004, "用户已锁定"),
     PASSWORD_ERROR(2005, "密码错误"),
     PASSWORD_EXPIRED(2006, "密码已过期"),
+    USERNAME_EXISTS(2007, "用户名已存在"),
+    EMAIL_EXISTS(2008, "邮箱已存在"),
+    PHONE_EXISTS(2009, "手机号已存在"),
+    OLD_PASSWORD_ERROR(2010, "旧密码错误"),
 
     /**
      * 认证相关错误
@@ -150,6 +154,9 @@ public enum ResultCode implements IResult {
     PERMISSION_DENIED(4001, "权限不足"),
     ROLE_NOT_FOUND(4002, "角色不存在"),
     PERMISSION_NOT_FOUND(4003, "权限不存在"),
+    ROLE_NAME_EXISTS(4004, "角色名称已存在"),
+    ROLE_KEY_EXISTS(4005, "角色权限字符串已存在"),
+    ROLE_HAS_USERS(4006, "角色下存在用户，无法删除"),
 
     /**
      * 组织架构相关错误

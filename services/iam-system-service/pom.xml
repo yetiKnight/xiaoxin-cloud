@@ -48,6 +48,12 @@
             <artifactId>iam-spring-boot-starter-cache</artifactId>
         </dependency>
         
+        <!-- 安全功能 -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-spring-boot-starter-security</artifactId>
+        </dependency>
+        
         <!-- 消息队列 -->
         <dependency>
             <groupId>com.xiaoxin</groupId>

@@ -1,5 +1,8 @@
 ---
-alwaysApply: true
+description: "Project structure guidelines for IAM platform"
+globs: "*"
+priority: 1100
+type: "Always Apply"
 ---
 
 # 小信云IAM平台项目结构指导

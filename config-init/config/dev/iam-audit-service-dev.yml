@@ -1,82 +1,42 @@
-db:
-  driver-class-name: com.mysql.cj.jdbc.Driver
-  url: jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_audit?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-  username: iam_audit
-  password: kT9!Wz2@Q
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://rm-bp1refbfnvk2t7235do.mysql.rds.aliyuncs.com:3306/iam_audit?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8}
+    username: ${DB_USERNAME:iam_audit}
+    password: ${DB_PASSWORD:lQ@8wE$R4tY6u!H}
 
-redis:
-  database:
-    audit: 3
+  data:
+    redis:
+      database: 4
 
-mongodb:
-  host: localhost
-  port: 27017
-  database: iam_audit
-  username: 
-  password: 
+  rocketmq:
+    consumer:
+      group: audit-consumer-group
+      namespace: ${ROCKETMQ_NAMESPACE:dev}
+      name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
+      access-key: ${ROCKETMQ_ACCESS_KEY:}
+      secret-key: ${ROCKETMQ_SECRET_KEY:}
+      consume-mode: CONCURRENTLY
+      consume-from-where: CONSUME_FROM_LAST_OFFSET
+      max-reconsume-times: 16
+      consume-timeout: 15
 
-elasticsearch:
-  enabled: true
-  host: localhost
-  port: 9200
-  username: 
-  password: 
-  index-prefix: iam-audit
-  
-audit:
-  operation-log:
-    enabled: true
-    storage: mysql
-    retention-days: 90
-    async: true
-    batch-size: 100
-    flush-interval-seconds: 30
-  login-log:
-    enabled: true
-    storage: mysql
-    retention-days: 180
-    record-success: true
-    record-failure: true
-    async: true
-  data-change-log:
-    enabled: true
-    storage: mongodb
-    retention-days: 365
-    tables:
-      - sys_user
-      - sys_role
-      - sys_permission
-      - sys_dept
-    async: true
-  exception-log:
-    enabled: true
-    storage: elasticsearch
-    retention-days: 30
-    include-stack-trace: true
-    async: true
+oauth2:
+  client:
+    enabled: ${OAUTH2_CLIENT_ENABLED:true}
+    client-id: ${OAUTH2_CLIENT_ID:iam-audit-service}
+    client-secret: ${OAUTH2_CLIENT_SECRET:iam-audit-secret-2024}
+    token-uri: ${OAUTH2_TOKEN_URI:http://iam-auth-service/oauth2/token}
+    scope: ${OAUTH2_CLIENT_SCOPE:internal:read internal:write audit:read audit:write}
+    connect-timeout: ${OAUTH2_CONNECT_TIMEOUT:5000}
+    read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
+    token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
+    max-retries: ${OAUTH2_MAX_RETRIES:3}
 
-log-analysis:
-  enabled: true
-  anomaly-detection:
-    enabled: true
-    check-interval-minutes: 30
-    threshold:
-      login-failure-rate: 0.1
-      operation-error-rate: 0.05
-  statistics:
-    enabled: true
-    generate-interval-hours: 24
-    retention-days: 365
+mybatis-plus:
+  type-aliases-package: com.xiaoxin.iam.audit.entity
 
-data-cleanup:
-  enabled: true
-  schedule: "0 0 2 * * ?"
-  batch-size: 1000
-  
-rocketmq:
-  name-server: localhost:9876
-  consumer:
-    group: audit-consumer-group
-    consume-thread-min: 5
-    consume-thread-max: 20
-    consume-message-batch-max-size: 10
+logging:
+  level:
+    "[com.xiaoxin.iam.audit]": ${AUDIT_LOG_LEVEL:info}
+    "[org.springframework.security]": ${SECURITY_LOG_LEVEL:info}
+    "[org.apache.rocketmq]": ${ROCKETMQ_LOG_LEVEL:warn}

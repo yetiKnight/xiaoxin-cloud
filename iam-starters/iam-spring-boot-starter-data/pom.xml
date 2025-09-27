@@ -28,10 +28,16 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         
-        <!-- MyBatis Plus -->
+        <!-- MyBatis Plus for Spring Boot 3 -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        
+        <!-- MyBatis Plus JSQLParser -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
         </dependency>
         
         <!-- MySQL Connector -->
@@ -40,11 +46,6 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
         
-        <!-- Druid连接池 -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-starter</artifactId>
-        </dependency>
         
         <!-- Spring Boot Data Redis -->
         <dependency>

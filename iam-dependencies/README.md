@@ -33,7 +33,6 @@
 - MySQL 8.0.33
 - PostgreSQL 42.7.4
 - H2 2.2.224
-- Druid 1.2.20
 - MyBatis Plus 3.5.4.1
 - Dynamic DataSource 4.2.0
 

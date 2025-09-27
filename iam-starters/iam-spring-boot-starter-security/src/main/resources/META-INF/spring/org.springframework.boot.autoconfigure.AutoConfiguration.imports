@@ -1,1 +1,2 @@
 com.xiaoxin.iam.starter.security.SecurityAutoConfiguration
+com.xiaoxin.iam.starter.security.oauth2.OAuth2ClientAutoConfiguration

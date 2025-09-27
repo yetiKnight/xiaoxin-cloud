@@ -1,75 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.xiaoxin</groupId>
-        <artifactId>iam-platform</artifactId>
+        <artifactId>iam-dependencies</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../../iam-dependencies</relativePath>
     </parent>
 
     <artifactId>iam-core-service</artifactId>
     <packaging>jar</packaging>
     <name>iam-core-service</name>
-    <description>核心业务服务 - 用户管理、权限管理、组织管理</description>
-
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <description>IAM Core Service - 核心业务服务</description>
 
     <dependencies>
-        <!-- 基础功能 -->
+        <!-- 公共模块 -->
         <dependency>
             <groupId>com.xiaoxin</groupId>
-            <artifactId>iam-spring-boot-starter</artifactId>
+            <artifactId>iam-common</artifactId>
         </dependency>
-        
-        <!-- Web功能 -->
+
+        <!-- Spring Boot Starter Web -->
         <dependency>
             <groupId>com.xiaoxin</groupId>
             <artifactId>iam-spring-boot-starter-web</artifactId>
         </dependency>
-        
-        <!-- 数据访问 -->
+
+        <!-- Spring Boot Starter Security -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter Data -->
         <dependency>
             <groupId>com.xiaoxin</groupId>
             <artifactId>iam-spring-boot-starter-data</artifactId>
         </dependency>
-        
-        <!-- 缓存 -->
+
+        <!-- Spring Boot Starter Cache -->
         <dependency>
             <groupId>com.xiaoxin</groupId>
             <artifactId>iam-spring-boot-starter-cache</artifactId>
         </dependency>
-        
-        <!-- 审计 -->
+
+        <!-- Spring Cloud Alibaba Nacos Discovery -->
         <dependency>
-            <groupId>com.xiaoxin</groupId>
-            <artifactId>iam-spring-boot-starter-audit</artifactId>
-        </dependency>
-        
-        <!-- 消息队列 -->
-        <dependency>
-            <groupId>com.xiaoxin</groupId>
-            <artifactId>iam-spring-boot-starter-mq</artifactId>
-        </dependency>
-        
-        <!-- 通知 -->
-        <dependency>
-            <groupId>com.xiaoxin</groupId>
-            <artifactId>iam-spring-boot-starter-notification</artifactId>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
 
-        <!-- 测试依赖 -->
+        <!-- Spring Cloud Alibaba Nacos Config -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud OpenFeign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud LoadBalancer -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring Security Test -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
