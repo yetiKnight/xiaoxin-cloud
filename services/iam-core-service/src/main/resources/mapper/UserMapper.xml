@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoxin.iam.core.mapper.UserMapper">
+
+    <!-- 用户基本信息结果映射 -->
+    <resultMap id="UserBaseMap" type="com.xiaoxin.iam.core.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="nickname" property="nickname"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="sex" property="sex"/>
+        <result column="avatar" property="avatar"/>
+        <result column="password" property="password"/>
+        <result column="status" property="status"/>
+        <result column="del_flag" property="delFlag"/>
+        <result column="login_ip" property="loginIp"/>
+        <result column="login_date" property="loginDate"/>
+        <result column="remark" property="remark"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 用户详细信息结果映射（包含角色、部门、权限、菜单） -->
+    <resultMap id="UserDetailMap" type="com.xiaoxin.iam.core.entity.User" extends="UserBaseMap">
+        <collection property="roles" ofType="com.xiaoxin.iam.core.entity.Role">
+            <id column="role_id" property="id"/>
+            <result column="role_name" property="roleName"/>
+            <result column="role_key" property="roleKey"/>
+            <result column="role_sort" property="roleSort"/>
+            <result column="data_scope" property="dataScope"/>
+            <result column="role_status" property="status"/>
+        </collection>
+        <collection property="depts" ofType="com.xiaoxin.iam.core.entity.Dept">
+            <id column="dept_id" property="id"/>
+            <result column="dept_name" property="deptName"/>
+            <result column="dept_parent_id" property="parentId"/>
+            <result column="ancestors" property="ancestors"/>
+            <result column="dept_order_num" property="orderNum"/>
+            <result column="leader" property="leader"/>
+            <result column="dept_phone" property="phone"/>
+            <result column="dept_email" property="email"/>
+            <result column="dept_status" property="status"/>
+        </collection>
+        <collection property="permissions" ofType="com.xiaoxin.iam.core.entity.Permission">
+            <id column="perm_id" property="id"/>
+            <result column="permission_name" property="permissionName"/>
+            <result column="permission_code" property="permissionCode"/>
+            <result column="permission_type" property="permissionType"/>
+            <result column="resource_type" property="resourceType"/>
+            <result column="resource_path" property="resourcePath"/>
+            <result column="http_method" property="httpMethod"/>
+            <result column="perm_status" property="status"/>
+        </collection>
+        <collection property="menus" ofType="com.xiaoxin.iam.core.entity.Menu">
+            <id column="menu_id" property="id"/>
+            <result column="menu_name" property="menuName"/>
+            <result column="menu_parent_id" property="parentId"/>
+            <result column="menu_order_num" property="orderNum"/>
+            <result column="path" property="path"/>
+            <result column="component" property="component"/>
+            <result column="query" property="query"/>
+            <result column="is_frame" property="isFrame"/>
+            <result column="is_cache" property="isCache"/>
+            <result column="menu_type" property="menuType"/>
+            <result column="visible" property="visible"/>
+            <result column="menu_status" property="status"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据用户ID查询用户详细信息（包含角色、部门、权限、菜单） -->
+    <select id="selectUserDetailById" resultMap="UserDetailMap">
+        SELECT 
+            u.id, u.username, u.nickname, u.email, u.phone, u.sex, u.avatar,
+            u.password, u.status, u.del_flag, u.login_ip, u.login_date, u.remark,
+            u.create_by, u.create_time, u.update_by, u.update_time,
+            
+            r.id as role_id, r.role_name, r.role_key, r.role_sort, r.data_scope,
+            r.status as role_status,
+            
+            d.id as dept_id, d.dept_name, d.parent_id as dept_parent_id,
+            d.ancestors, d.order_num as dept_order_num, d.leader,
+            d.phone as dept_phone, d.email as dept_email, d.status as dept_status,
+            
+            p.id as perm_id, p.permission_name, p.permission_code, p.permission_type,
+            p.resource_type, p.resource_path, p.http_method, p.status as perm_status,
+            
+            m.id as menu_id, m.menu_name, m.parent_id as menu_parent_id,
+            m.order_num as menu_order_num, m.path, m.component, m.query,
+            m.is_frame, m.is_cache, m.menu_type, m.visible, m.status as menu_status
+        FROM sys_user u
+        LEFT JOIN sys_user_role ur ON u.id = ur.user_id
+        LEFT JOIN sys_role r ON ur.role_id = r.id AND r.del_flag = '0'
+        LEFT JOIN sys_user_dept ud ON u.id = ud.user_id
+        LEFT JOIN sys_dept d ON ud.dept_id = d.id AND d.del_flag = '0'
+        LEFT JOIN sys_role_permission rp ON r.id = rp.role_id
+        LEFT JOIN sys_permission p ON rp.permission_id = p.id AND p.del_flag = '0'
+        LEFT JOIN sys_role_menu rm ON r.id = rm.role_id
+        LEFT JOIN sys_menu m ON rm.menu_id = m.id AND m.del_flag = '0'
+        WHERE u.id = #{userId} AND u.del_flag = '0'
+    </select>
+
+    <!-- 根据用户名查询用户 -->
+    <select id="selectUserByUsername" resultMap="UserBaseMap">
+        SELECT id, username, nickname, email, phone, sex, avatar, password,
+               status, del_flag, login_ip, login_date, remark, create_by,
+               create_time, update_by, update_time
+        FROM sys_user
+        WHERE username = #{username} AND del_flag = '0'
+    </select>
+
+    <!-- 查询用户角色列表 -->
+    <select id="selectUserRoles" resultType="com.xiaoxin.iam.core.entity.Role">
+        SELECT r.id, r.role_name, r.role_key, r.role_sort, r.data_scope,
+               r.menu_check_strictly, r.dept_check_strictly, r.status, r.del_flag,
+               r.remark, r.create_by, r.create_time, r.update_by, r.update_time
+        FROM sys_role r
+        INNER JOIN sys_user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId} AND r.del_flag = '0' AND r.status = '0'
+        ORDER BY r.role_sort
+    </select>
+
+    <!-- 查询用户部门列表 -->
+    <select id="selectUserDepts" resultType="com.xiaoxin.iam.core.entity.Dept">
+        SELECT d.id, d.parent_id, d.ancestors, d.dept_name, d.order_num,
+               d.leader, d.phone, d.email, d.status, d.del_flag,
+               d.create_by, d.create_time, d.update_by, d.update_time
+        FROM sys_dept d
+        INNER JOIN sys_user_dept ud ON d.id = ud.dept_id
+        WHERE ud.user_id = #{userId} AND d.del_flag = '0' AND d.status = '0'
+        ORDER BY d.order_num
+    </select>
+
+    <!-- 查询用户权限列表 -->
+    <select id="selectUserPermissions" resultType="com.xiaoxin.iam.core.entity.Permission">
+        SELECT DISTINCT p.id, p.permission_name, p.permission_code, p.permission_type,
+               p.resource_type, p.resource_path, p.http_method, p.parent_id,
+               p.level, p.sort_order, p.status, p.del_flag, p.remark,
+               p.create_by, p.create_time, p.update_by, p.update_time
+        FROM sys_permission p
+        INNER JOIN sys_role_permission rp ON p.id = rp.permission_id
+        INNER JOIN sys_user_role ur ON rp.role_id = ur.role_id
+        INNER JOIN sys_role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId} 
+        AND p.del_flag = '0' AND p.status = '0'
+        AND r.del_flag = '0' AND r.status = '0'
+        ORDER BY p.level, p.sort_order
+    </select>
+
+    <!-- 查询用户菜单列表 -->
+    <select id="selectUserMenus" resultType="com.xiaoxin.iam.core.entity.Menu">
+        SELECT DISTINCT m.id, m.menu_name, m.parent_id, m.order_num, m.path,
+               m.component, m.query, m.is_frame, m.is_cache, m.menu_type,
+               m.visible, m.status, m.del_flag, m.icon, m.perms,
+               m.create_by, m.create_time, m.update_by, m.update_time, m.remark
+        FROM sys_menu m
+        INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
+        INNER JOIN sys_user_role ur ON rm.role_id = ur.role_id
+        INNER JOIN sys_role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+        AND m.del_flag = '0' AND m.status = '0'
+        AND r.del_flag = '0' AND r.status = '0'
+        ORDER BY m.parent_id, m.order_num
+    </select>
+
+    <!-- 检查用户名是否存在 -->
+    <select id="checkUsernameExists" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_user
+        WHERE username = #{username}
+        AND del_flag = '0'
+        <if test="userId != null">
+            AND id != #{userId}
+        </if>
+    </select>
+
+    <!-- 检查邮箱是否存在 -->
+    <select id="checkEmailExists" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_user
+        WHERE email = #{email}
+        AND del_flag = '0'
+        <if test="userId != null">
+            AND id != #{userId}
+        </if>
+    </select>
+
+    <!-- 检查手机号是否存在 -->
+    <select id="checkPhoneExists" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_user
+        WHERE phone = #{phone}
+        AND del_flag = '0'
+        <if test="userId != null">
+            AND id != #{userId}
+        </if>
+    </select>
+
+    <!-- 插入用户角色关联 -->
+    <insert id="insertUserRoles">
+        INSERT INTO sys_user_role (user_id, role_id)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId})
+        </foreach>
+    </insert>
+
+    <!-- 删除用户角色关联 -->
+    <delete id="deleteUserRoles">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 插入用户部门关联 -->
+    <insert id="insertUserDepts">
+        INSERT INTO sys_user_dept (user_id, dept_id)
+        VALUES
+        <foreach collection="deptIds" item="deptId" separator=",">
+            (#{userId}, #{deptId})
+        </foreach>
+    </insert>
+
+    <!-- 删除用户部门关联 -->
+    <delete id="deleteUserDepts">
+        DELETE FROM sys_user_dept WHERE user_id = #{userId}
+    </delete>
+
+</mapper>

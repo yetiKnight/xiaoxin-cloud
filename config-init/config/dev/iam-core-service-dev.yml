@@ -8,7 +8,9 @@ spring:
     redis:
       database: 2
 
+# OAuth2 Configuration - Dual Role: Client & Resource Server
 oauth2:
+  # OAuth2 Client Configuration - For outbound API calls to other services
   client:
     enabled: ${OAUTH2_CLIENT_ENABLED:true}
     client-id: ${OAUTH2_CLIENT_ID:iam-core-service}
@@ -19,6 +21,7 @@ oauth2:
     read-timeout: ${OAUTH2_READ_TIMEOUT:10000}
     token-cache-expire: ${OAUTH2_TOKEN_CACHE_EXPIRE:3300}
     max-retries: ${OAUTH2_MAX_RETRIES:3}
+  # OAuth2 Resource Server Configuration - For inbound API calls validation
   resource-server:
     jwt:
       jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:8080/oauth2/jwks}

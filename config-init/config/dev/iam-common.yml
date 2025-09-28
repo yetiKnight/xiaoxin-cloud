@@ -81,17 +81,15 @@ seata:
       namespace: ${NACOS_NAMESPACE:dev}
       group: SEATA_GROUP
 
-security:
-  jwt:
-    secret: ${JWT_SECRET:xiaoxin-iam-platform-jwt-secret-key-2024}
-    expiration: ${JWT_EXPIRATION:7200000}
-    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
-  oauth2:
-    authorization-server:
-      issuer: ${OAUTH2_ISSUER:http://localhost:8080}
-    resource-server:
-      jwt:
-        issuer-uri: ${OAUTH2_ISSUER:http://localhost:8080}
+iam:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:xiaoxin-iam-platform-jwt-secret-key-for-256-bits-hmac-sha-algorithm-2024}
+      expiration: ${JWT_EXPIRATION:7200000}
+      refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+      access-token-expiration: ${JWT_EXPIRATION:7200000}
+      issuer: ${JWT_ISSUER:xiaoxin-iam}
+      audience: ${JWT_AUDIENCE:xiaoxin-iam-client}
 
 logging:
   level:
