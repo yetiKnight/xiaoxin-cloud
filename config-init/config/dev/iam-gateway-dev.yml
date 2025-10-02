@@ -101,6 +101,33 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       
       routes:
+        # OAuth2 authorization endpoints - highest priority
+        - id: iam-auth-service-oauth2-authorize
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/oauth2/authorize,/oauth2/device_authorization,/oauth2/device_verification
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+            - AddRequestHeader=X-Forwarded-Host, ${GATEWAY_HOST:localhost:8080}
+            - AddRequestHeader=X-Forwarded-Proto, ${GATEWAY_PROTO:http}
+            - AddRequestHeader=X-Original-Forwarded-For, true
+        
+        # OAuth2 token endpoints
+        - id: iam-auth-service-oauth2-token
+          uri: lb://iam-auth-service
+          predicates:
+            - Path=/oauth2/token,/oauth2/introspect,/oauth2/revoke
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+            - AddRequestHeader=X-Forwarded-Host, ${GATEWAY_HOST:localhost:8080}
+            - AddRequestHeader=X-Forwarded-Proto, ${GATEWAY_PROTO:http}
+        
         - id: iam-auth-service-login
           uri: lb://iam-auth-service
           predicates:
@@ -124,25 +151,17 @@ spring:
         - id: iam-auth-service-oauth2-public
           uri: lb://iam-auth-service
           predicates:
-            - Path=/oauth2/jwks
+            - Path=/oauth2/jwks,/.well-known/**,/userinfo,/connect/**
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 100
-                redis-rate-limiter.burstCapacity: 200
+                redis-rate-limiter.replenishRate: 200
+                redis-rate-limiter.burstCapacity: 400
+            - AddRequestHeader=X-Forwarded-Host, ${GATEWAY_HOST:localhost:8080}
+            - AddRequestHeader=X-Forwarded-Proto, ${GATEWAY_PROTO:http}
             - AddRequestHeader=X-Endpoint-Type, oauth2-public
             - AddRequestHeader=X-Service-Source, gateway
         
-        - id: iam-auth-service-oauth2-protected
-          uri: lb://iam-auth-service
-          predicates:
-            - Path=/oauth2/token,/oauth2/authorize,/oauth2/introspect,/oauth2/revoke
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
-            - AddRequestHeader=X-Endpoint-Type, oauth2-protected
         
         - id: iam-auth-service-oauth2
           uri: lb://iam-auth-service
@@ -312,8 +331,12 @@ auth:
     - /api/v1/auth/register
     - /api/v1/auth/captcha
     - /api/v1/auth/callback/**
-    # OAuth2 Public endpoints
-    - /oauth2/jwks
+    - /api/v1/auth/oauth2/**
+    # OAuth2 Standard endpoints
+    - /oauth2/**
+    - /.well-known/**
+    - /userinfo
+    - /connect/**
     - /actuator/**
     - /favicon.ico
     - /assets/**

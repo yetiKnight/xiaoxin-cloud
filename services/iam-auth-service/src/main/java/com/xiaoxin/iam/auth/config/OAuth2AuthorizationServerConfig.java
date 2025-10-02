@@ -296,7 +296,7 @@ public class OAuth2AuthorizationServerConfig {
     public AuthorizationServerSettings authorizationServerSettings() {
         log.info("配置授权服务器设置");
         return AuthorizationServerSettings.builder()
-                .issuer("http://iam-auth-service:8081")
+                .issuer("http://localhost:8080")  // 使用网关地址作为issuer
                 .authorizationEndpoint("/oauth2/authorize")
                 .deviceAuthorizationEndpoint("/oauth2/device_authorization")
                 .deviceVerificationEndpoint("/oauth2/device_verification")
