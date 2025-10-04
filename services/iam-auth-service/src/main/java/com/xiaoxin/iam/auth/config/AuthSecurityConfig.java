@@ -4,9 +4,13 @@ import com.xiaoxin.iam.auth.constant.AuthConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * 认证服务安全配置类
@@ -29,27 +33,30 @@ public class AuthSecurityConfig {
      * @throws Exception 配置异常
      */
     @Bean
+    @Order(2)
     public SecurityFilterChain authSecurityFilterChain(HttpSecurity http) throws Exception {
         log.info("认证服务安全过滤器链配置开始");
         
         http
             .authorizeHttpRequests(authz -> authz
                 // 允许认证相关接口无需认证
-                .requestMatchers(AuthConstants.LOGIN_PATH).permitAll()
-                .requestMatchers(AuthConstants.LOGOUT_PATH).permitAll()
-                .requestMatchers(AuthConstants.REFRESH_PATH).permitAll()
-                .requestMatchers(AuthConstants.REGISTER_PATH).permitAll()
-                .requestMatchers(AuthConstants.CAPTCHA_PATH).permitAll()
-                .requestMatchers(AuthConstants.OAUTH2_PATH_PREFIX).permitAll()
-                .requestMatchers(AuthConstants.OAUTH2_CALLBACK_PATH_PREFIX).permitAll()
+                .requestMatchers(new AntPathRequestMatcher(AuthConstants.LOGIN_PATH, "POST")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher(AuthConstants.LOGOUT_PATH, "POST")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher(AuthConstants.REFRESH_PATH, "POST")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher(AuthConstants.REGISTER_PATH, "POST")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher(AuthConstants.CAPTCHA_PATH, "GET")).permitAll()
+                // 允许OAuth2相关接口（由OAuth2AuthorizationServerConfig处理）
+                .requestMatchers(new AntPathRequestMatcher("/oauth2/**")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/.well-known/**")).permitAll()
                 // 允许健康检查和文档接口
-                .requestMatchers(AuthConstants.ACTUATOR_PATH_PREFIX).permitAll()
+                .requestMatchers(new AntPathRequestMatcher(AuthConstants.ACTUATOR_PATH_PREFIX)).permitAll()
                 .requestMatchers(AuthConstants.DOCUMENTATION_PATHS).permitAll()
                 // 其他请求需要认证
                 .anyRequest().authenticated()
             )
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.disable());
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
             
         log.info("认证服务安全过滤器链配置完成，已允许认证接口匿名访问");
         return http.build();

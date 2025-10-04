@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
+        <artifactId>iam-platform</artifactId>
         <groupId>com.xiaoxin</groupId>
-        <artifactId>iam-dependencies</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../iam-dependencies</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>iam-core-service</artifactId>

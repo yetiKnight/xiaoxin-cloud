@@ -29,8 +29,10 @@ oauth2:
           redirect-uris:
             - ${OAUTH2_REDIRECT_URI_1:http://localhost:3000/callback}
             - ${OAUTH2_REDIRECT_URI_2:http://localhost:3000/authorized}
-            - ${OAUTH2_REDIRECT_URI_3:http://localhost:8088/callback}
-            - ${OAUTH2_REDIRECT_URI_4:http://localhost:8088/authorized}
+            - ${OAUTH2_REDIRECT_URI_3:http://localhost:8082/callback}
+            - ${OAUTH2_REDIRECT_URI_4:http://localhost:8082/authorized}
+            - ${OAUTH2_REDIRECT_URI_5:http://localhost:8088/callback}
+            - ${OAUTH2_REDIRECT_URI_6:http://localhost:8088/authorized}
           scopes:
             - read
             - write

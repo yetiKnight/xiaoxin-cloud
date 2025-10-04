@@ -10,10 +10,12 @@ import java.util.UUID;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -29,7 +31,7 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import com.nimbusds.jose.jwk.JWKSet;
@@ -67,14 +69,16 @@ public class OAuth2AuthorizationServerConfig {
             .oidc(Customizer.withDefaults()); // Enable OpenID Connect 1.0
             
         http
-            // Redirect to the login page when not authenticated from the
-            // authorization endpoint
-            .exceptionHandling((exceptions) -> exceptions
+            // 🚫 不再重定向到 /login，而是直接返回 401
+            .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/login"),
+                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                     new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                 )
             )
+            // 关闭默认登录表单
+            .formLogin(AbstractHttpConfigurer::disable)
+            .cors(Customizer.withDefaults())
             // Accept access tokens for User Info and/or Client Registration
             .oauth2ResourceServer((resourceServer) -> resourceServer
                 .jwt(Customizer.withDefaults()));
@@ -236,14 +240,69 @@ public class OAuth2AuthorizationServerConfig {
                         .build())
                 .build();
 
-        log.info("OAuth2注册客户端存储库配置完成，已注册{}个客户端", 6);
+        // 登录前端SPA客户端
+        RegisteredClient loginFrontendClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("iam-login-client")
+                .clientSecret(passwordEncoder.encode("login-client-secret"))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri("http://localhost:3000/callback")
+                .redirectUri("http://localhost:8082") // 添加业务系统B的redirect_uri
+                .postLogoutRedirectUri("http://localhost:3000/")
+                .scopes(scopes -> {
+                    scopes.add(OidcScopes.OPENID);
+                    scopes.add(OidcScopes.PROFILE);
+                    scopes.add(OidcScopes.EMAIL);
+                })
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(true)
+                        .requireProofKey(true)  // 启用PKCE
+                        .build())
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofHours(1))
+                        .refreshTokenTimeToLive(Duration.ofDays(1))
+                        .reuseRefreshTokens(false)
+                        .build())
+                .build();
+
+        // 业务系统B客户端
+        RegisteredClient businessSystemBClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("business-system-b")
+                .clientSecret(passwordEncoder.encode("business-system-b-secret"))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri("http://localhost:8082/callback")
+                .postLogoutRedirectUri("http://localhost:8082/")
+                .scopes(scopes -> {
+                    scopes.add(OidcScopes.OPENID);
+                    scopes.add(OidcScopes.PROFILE);
+                    scopes.add(OidcScopes.EMAIL);
+                })
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(true)
+                        .requireProofKey(false)  // 业务系统B不需要PKCE
+                        .build())
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofHours(1))
+                        .refreshTokenTimeToLive(Duration.ofDays(1))
+                        .reuseRefreshTokens(false)
+                        .build())
+                .build();
+
+        log.info("OAuth2注册客户端存储库配置完成，已注册{}个客户端", 8);
         return new InMemoryRegisteredClientRepository(
                 gatewayClient, 
                 authServiceClient,
                 coreServiceClient, 
                 auditServiceClient, 
                 systemServiceClient, 
-                frontendClient
+                frontendClient,
+                loginFrontendClient,  // 登录前端SPA客户端
+                businessSystemBClient  // 业务系统B客户端
         );
     }
 

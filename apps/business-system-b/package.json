@@ -1,0 +1,21 @@
+{
+  "name": "business-system-b",
+  "version": "1.0.0",
+  "description": "业务系统B - OAuth2客户端示例",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.2.0",
+    "vue-router": "^4.0.0",
+    "pinia": "^2.0.0",
+    "element-plus": "^2.0.0",
+    "axios": "^1.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "vite": "^4.0.0"
+  }
+}

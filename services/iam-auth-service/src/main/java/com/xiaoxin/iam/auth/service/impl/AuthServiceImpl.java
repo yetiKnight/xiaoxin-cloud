@@ -15,12 +15,19 @@ import com.xiaoxin.iam.common.dto.LoginInfoUpdateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 认证服务实现类
@@ -31,7 +38,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl {
+public class AuthServiceImpl implements UserDetailsService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
@@ -77,7 +84,7 @@ public class AuthServiceImpl {
             
             // 3. 验证密码
             if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                throw new AuthException(ResultCode.PASSWORD_ERROR.getCode(), "密码错误");
+                throw new BadCredentialsException("密码错误");
             }
             
             // 4. 生成JWT令牌
@@ -192,5 +199,50 @@ public class AuthServiceImpl {
 
     public boolean validateToken(String token) {
         return jwtUtils.validateToken(token);
+    }
+
+    /**
+     * 实现UserDetailsService接口，用于Spring Security认证
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        log.debug("加载用户详情: {}", username);
+        
+        try {
+            // 调用核心服务获取用户信息
+            Result<UserDTO> userResult = coreServiceClient.getUserByUsername(username);
+            
+            if (!userResult.isSuccess() || userResult.getData() == null) {
+                throw new UsernameNotFoundException("用户不存在: " + username);
+            }
+            
+            UserDTO user = userResult.getData();
+            
+            // 检查用户状态
+            if (user.getStatus() == null || !"0".equals(user.getStatus())) {
+                throw new UsernameNotFoundException("用户状态异常: " + username);
+            }
+            
+            // 获取用户角色并转换为权限
+            List<SimpleGrantedAuthority> authorities = user.getRoles() != null ?
+                user.getRoles().stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .collect(Collectors.toList()) :
+                Collections.emptyList();
+            
+            // 返回UserDetails对象
+            return User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword()) // 注意：这里应该是加密后的密码
+                .authorities(authorities)
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+        } catch (Exception e) {
+            log.error("加载用户详情失败: username={}", username, e);
+            throw new UsernameNotFoundException("加载用户详情失败: " + username, e);
+        }
     }
 }

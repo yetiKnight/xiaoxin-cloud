@@ -20,27 +20,24 @@
         <dependency>
             <groupId>com.xiaoxin</groupId>
             <artifactId>iam-common</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- IAM Web Starter -->
+        <dependency>
+            <groupId>com.xiaoxin</groupId>
+            <artifactId>iam-spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- IAM Data Starter -->
         <dependency>
             <groupId>com.xiaoxin</groupId>
             <artifactId>iam-spring-boot-starter-data</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <!-- IAM Security Starter -->
         <dependency>
             <groupId>com.xiaoxin</groupId>
             <artifactId>iam-spring-boot-starter-security</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- Spring Boot Web -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- Spring Cloud OpenFeign -->
@@ -79,7 +76,6 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-
 
         <!-- Spring Boot Test -->
         <dependency>
